@@ -8,10 +8,23 @@ const userSchema = new mongoose.Schema({
   phone_Number: {
     type: String,
     required: true,
+    validate: {
+      validator: function (v) {
+        return /^(\+91)?[6-9]{1}[0-9]{9}$/.test(v);
+      },
+      message: (props) =>
+        `${props.value} is not a valid phone number! It must start with +91 and have 10 digits.`,
+    },
   },
   email: {
     type: String,
     required: true,
+    validate: {
+      validator: function (v) {
+        return /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v);
+      },
+      message: (props) => `${props.value} is not a valid email!`,
+    },
   },
   payment_Completed: {
     type: Boolean,
