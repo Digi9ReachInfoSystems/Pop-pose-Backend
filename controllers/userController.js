@@ -34,9 +34,27 @@ const startUserJourney = async (req, res) => {
   }
 };
 
-const updateSelectionForUser = async (req, res) => {
+const selectFrame = async (req, res) => {
   try {
-  } catch (err) {}
+    const { frameId } = req.body;
+    const { userId } = req.params;
+
+    const user = await userModel.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.frame_Selection = frameId;
+    await user.save();
+
+    res.status(200).json({ message: "Frame selected successfully" });
+  } catch (err) {
+    console.error("Server error:", err);
+    res.status(500).json({
+      message: "An internal server error occurred. Please try again later.",
+    });
+  }
 };
 
 module.exports = { startUserJourney, updateSelectionForUser };
