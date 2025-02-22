@@ -57,4 +57,4 @@ const selectFrame = async (req, res) => {
   }
 };
 
-module.exports = { startUserJourney, updateSelectionForUser };
+module.exports = { startUserJourney };
