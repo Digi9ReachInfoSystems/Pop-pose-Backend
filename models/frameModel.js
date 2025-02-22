@@ -21,6 +21,9 @@ const frameSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  image: {
+    type: String,
+  },
 });
 
 module.exports = mongoose.model("frame", frameSchema);
