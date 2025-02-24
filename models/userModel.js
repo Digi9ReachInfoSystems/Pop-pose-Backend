@@ -56,7 +56,8 @@ const userSchema = new mongoose.Schema({
     ref: "photo",
   },
   no_of_copies: {
-    type: Number,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "noOfCopies",
   },
   image_captured: [
     {

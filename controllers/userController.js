@@ -1,3 +1,4 @@
+const { create } = require("../models/frameModel");
 const userModel = require("../models/userModel");
 
 const startUserJourney = async (req, res) => {
@@ -57,4 +58,24 @@ const selectFrame = async (req, res) => {
   }
 };
 
-module.exports = { startUserJourney, selectFrame };
+const createNoOfCopies = async (req, res) => {
+  try {
+    const { numberId } = req.body;
+    const { userId } = req.params;
+
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    user.no_of_copies = numberId;
+    await user.save();
+    res.status(200).json({ message: "Copies added successfully" });
+  } catch (err) {
+    console.error("Server error:", err);
+    res.status(500).json({
+      message: "An internal server error occurred. Please try again later.",
+    });
+  }
+};
+
+module.exports = { startUserJourney, selectFrame, createNoOfCopies };
