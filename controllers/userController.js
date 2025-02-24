@@ -78,4 +78,35 @@ const createNoOfCopies = async (req, res) => {
   }
 };
 
-module.exports = { startUserJourney, selectFrame, createNoOfCopies };
+const getUserForPayment = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Fetch user and populate frame_Selection and no_of_copies fields
+    const user = await userModel
+      .findById(userId)
+      // Populate frame_Selection with 'name'
+      .populate("frame_Selection", "price image rows column index frame_size")
+      .populate("no_of_copies", "Number") // Populate no_of_copies with 'name'
+      .exec();
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Send back the user with populated fields
+    res.status(200).json({ user });
+  } catch (err) {
+    console.error("Server error:", err);
+    res.status(500).json({
+      message: "An internal server error occurred. Please try again later.",
+    });
+  }
+};
+
+module.exports = {
+  startUserJourney,
+  selectFrame,
+  createNoOfCopies,
+  getUserForPayment,
+};

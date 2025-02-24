@@ -9,6 +9,10 @@ const noOfCopies = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  frameId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "frame",
+  },
 });
 
 module.exports = mongoose.model("noOfCopies", noOfCopies);
