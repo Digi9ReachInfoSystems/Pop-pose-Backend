@@ -1,5 +1,15 @@
 const { create } = require("../models/frameModel");
 const userModel = require("../models/userModel");
+const { storage } = require("../config/firebaseConfig");
+const admin = require("firebase-admin");
+const multer = require("multer");
+const path = require("path");
+
+const storageConfig = multer.memoryStorage(); // Store files in memory before uploading
+const upload = multer({
+  storage: storageConfig,
+  limits: { fileSize: 10 * 1024 * 1024 }, // Limit file size to 10MB
+}).array("images[]"); // We expect an array of images
 
 const startUserJourney = async (req, res) => {
   try {
@@ -104,9 +114,82 @@ const getUserForPayment = async (req, res) => {
   }
 };
 
+const saveImages = async (req, res) => {
+  // Use multer to handle file uploads from the form
+  upload(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ message: err.message });
+    }
+
+    const { userId } = req.body; // Get the user ID from the request body
+
+    if (!userId || !req.files || req.files.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "User ID and images are required." });
+    }
+
+    try {
+      // Find the user by ID
+      const user = await userModel.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found." });
+      }
+
+      // Initialize an array to store the URLs of uploaded images
+      const imageUrls = [];
+
+      // Iterate over each image and upload it to Firebase Storage
+      for (const image of req.files) {
+        const fileName = `images/${Date.now()}_${image.originalname}`; // Create a unique file name
+
+        // Upload image to Firebase Storage
+        const file = storage.file(fileName);
+        const stream = file.createWriteStream({
+          metadata: {
+            contentType: image.mimetype, // Content type from the uploaded file
+          },
+        });
+
+        stream.on("error", (err) => {
+          console.error("Error uploading image: ", err);
+          return res.status(500).json({ message: "Error uploading image." });
+        });
+
+        // Pipe the image file to Firebase Storage
+        stream.end(image.buffer); // Assuming `image` is a buffer, like in a multipart form submission
+
+        // Once the file is uploaded, generate a signed URL (temporary URL)
+        const [signedUrl] = await file.getSignedUrl({
+          action: "read", // The action is "read" to allow access to the file
+          expires: Date.now() + 60 * 60 * 200000, // URL expires in 1 hour
+        });
+
+        imageUrls.push(signedUrl);
+      }
+
+      // Add the image URLs to the user's image_captured array
+      user.image_captured.push(...imageUrls);
+
+      // Save the updated user document
+      await user.save();
+
+      return res
+        .status(200)
+        .json({ message: "Images uploaded successfully.", imageUrls });
+    } catch (error) {
+      console.error("Error saving images: ", error);
+      return res
+        .status(500)
+        .json({ message: error.message || "Error saving images." });
+    }
+  });
+};
+
 module.exports = {
   startUserJourney,
   selectFrame,
   createNoOfCopies,
   getUserForPayment,
+  saveImages,
 };
