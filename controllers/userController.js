@@ -5,11 +5,12 @@ const admin = require("firebase-admin");
 const multer = require("multer");
 const path = require("path");
 
-const storageConfig = multer.memoryStorage(); // Store files in memory before uploading
+const storageConfig = multer.memoryStorage();
+
 const upload = multer({
   storage: storageConfig,
-  limits: { fileSize: 10 * 1024 * 1024 }, // Limit file size to 10MB
-}).array("images[]"); // We expect an array of images
+  limits: { fileSize: 10 * 1024 * 1024 },
+}).array("images[]");
 
 const startUserJourney = async (req, res) => {
   try {
@@ -43,6 +44,11 @@ const startUserJourney = async (req, res) => {
       message: "An internal server error occurred. Please try again later.",
     });
   }
+};
+
+const registerDevice = async (req, res) => {
+  try {
+  } catch {}
 };
 
 const selectFrame = async (req, res) => {
@@ -136,18 +142,15 @@ const saveImages = async (req, res) => {
         return res.status(404).json({ message: "User not found." });
       }
 
-      // Initialize an array to store the URLs of uploaded images
       const imageUrls = [];
 
-      // Iterate over each image and upload it to Firebase Storage
       for (const image of req.files) {
         const fileName = `images/${Date.now()}_${image.originalname}`; // Create a unique file name
 
-        // Upload image to Firebase Storage
         const file = storage.file(fileName);
         const stream = file.createWriteStream({
           metadata: {
-            contentType: image.mimetype, // Content type from the uploaded file
+            contentType: image.mimetype,
           },
         });
 
@@ -156,22 +159,18 @@ const saveImages = async (req, res) => {
           return res.status(500).json({ message: "Error uploading image." });
         });
 
-        // Pipe the image file to Firebase Storage
-        stream.end(image.buffer); // Assuming `image` is a buffer, like in a multipart form submission
+        stream.end(image.buffer);
 
-        // Once the file is uploaded, generate a signed URL (temporary URL)
         const [signedUrl] = await file.getSignedUrl({
-          action: "read", // The action is "read" to allow access to the file
-          expires: Date.now() + 60 * 60 * 200000, // URL expires in 1 hour
+          action: "read",
+          expires: Date.now() + 60 * 60 * 200000,
         });
 
         imageUrls.push(signedUrl);
       }
 
-      // Add the image URLs to the user's image_captured array
       user.image_captured.push(...imageUrls);
 
-      // Save the updated user document
       await user.save();
 
       return res

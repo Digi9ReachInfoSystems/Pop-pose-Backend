@@ -2,15 +2,16 @@ const Frame = require("../models/frameModel");
 
 const createFrame = async (req, res) => {
   try {
-    const { frame_size, price, rows, column, index, image } = req.body;
+    const { frame_size, price, rows, column, index, image, orientation } =
+      req.body;
 
-    // Create a new frame document using the provided data
     const newFrame = await Frame.create({
       frame_size,
       price,
       rows,
       column,
       index,
+      orientation,
       image,
     });
 
@@ -23,7 +24,6 @@ const createFrame = async (req, res) => {
   }
 };
 
-// Get all frames
 const getFrames = async (req, res) => {
   try {
     const frames = await Frame.find();
@@ -36,7 +36,6 @@ const getFrames = async (req, res) => {
   }
 };
 
-// Get a frame by ID
 const getFrameById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -55,16 +54,16 @@ const getFrameById = async (req, res) => {
   }
 };
 
-// Update a frame by ID
 const updateFrame = async (req, res) => {
   try {
     const { id } = req.params;
-    const { frame_size, price, rows, column, index, image } = req.body;
+    const { frame_size, price, rows, column, index, image, orientation } =
+      req.body;
 
     const updatedFrame = await Frame.findByIdAndUpdate(
       id,
-      { frame_size, price, rows, column, index, image },
-      { new: true } // return the updated frame
+      { frame_size, price, rows, column, index, image, orientation },
+      { new: true } 
     );
 
     if (!updatedFrame) {
@@ -80,7 +79,6 @@ const updateFrame = async (req, res) => {
   }
 };
 
-// Delete a frame by ID
 const deleteFrame = async (req, res) => {
   try {
     const { id } = req.params;

@@ -24,6 +24,10 @@ const frameSchema = new mongoose.Schema({
   image: {
     type: String,
   },
+  orientation: {
+    type: String,
+    required: true,
+  },
 });
 
 module.exports = mongoose.model("frame", frameSchema);
