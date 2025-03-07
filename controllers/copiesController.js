@@ -16,6 +16,23 @@ const addCopies = async (req, res) => {
 const getCopies = async (req, res) => {
   try {
     const copies = await copiesModel.find();
+    // console.log(copies);
+    res.status(200).json({ copies });
+  } catch (err) {
+    console.error("Server error:", err);
+    res.status(500).json({
+      message: "An internal server error occurred. Please try again later.",
+    });
+  }
+};
+
+const getCopiesById = async (req, res) => {
+  try {
+    const { id } = req.params; // Assuming the ID is passed as a route parameter
+    const copies = await copiesModel.findById(id);
+    if (!copies) {
+      return res.status(404).json({ message: "Copies not found" });
+    }
     res.status(200).json({ copies });
   } catch (err) {
     console.error("Server error:", err);
@@ -27,7 +44,7 @@ const getCopies = async (req, res) => {
 
 const deleteCopies = async (req, res) => {
   try {
-    const { id } = req.params; // Assuming the ID is passed as a route parameter
+    const { id } = req.params; 
     const deletedCopies = await copiesModel.findByIdAndDelete(id);
     if (!deletedCopies) {
       return res.status(404).json({ message: "Copies not found" });
@@ -41,4 +58,4 @@ const deleteCopies = async (req, res) => {
   }
 };
 
-module.exports = { addCopies, getCopies, deleteCopies };
+module.exports = { addCopies, getCopies, deleteCopies, getCopiesById };

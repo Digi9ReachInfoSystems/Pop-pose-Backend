@@ -40,6 +40,7 @@ const getFrameById = async (req, res) => {
   try {
     const { id } = req.params;
     const frame = await Frame.findById(id);
+    
 
     if (!frame) {
       return res.status(404).json({ message: "Frame not found" });

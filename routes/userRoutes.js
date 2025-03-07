@@ -6,5 +6,5 @@ router.post("/start", user.startUserJourney);
 router.post("/:userId/select-frame", user.selectFrame);
 router.post("/:userId/select-number", user.createNoOfCopies);
 router.post("/save-images", user.saveImages);
-
+router.get("/getAllUsers", user.getAllUsers);
 module.exports = router;

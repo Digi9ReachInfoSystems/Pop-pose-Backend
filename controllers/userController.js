@@ -74,6 +74,8 @@ const selectFrame = async (req, res) => {
   }
 };
 
+
+
 const createNoOfCopies = async (req, res) => {
   try {
     const { numberId } = req.body;
@@ -185,10 +187,26 @@ const saveImages = async (req, res) => {
   });
 };
 
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await userModel.find()
+    .populate("frame_Selection no_of_copies")
+    .exec();
+    res.status(200).json({ users });
+  } catch (err) {
+    console.error("Server error:", err);
+    res.status(500).json({
+      message: "An internal server error occurred. Please try again later.",
+    });
+  }
+};
+
+
 module.exports = {
   startUserJourney,
   selectFrame,
   createNoOfCopies,
   getUserForPayment,
   saveImages,
+  getAllUsers,
 };
