@@ -12,3 +12,4 @@
 ## so in backgroundcontroller code there are 3 endponts 
 ### post is to create the device, get is to get all the device and put is to update the abckground image of the device
 
+##7. get all copies
