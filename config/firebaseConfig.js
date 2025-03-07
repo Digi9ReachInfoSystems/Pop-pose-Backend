@@ -23,8 +23,10 @@ if (!admin.apps.length) {
 const bucket = admin.storage().bucket();
 const storage = admin.storage().bucket();
 
+
 module.exports = {
   admin,
   storage,
   bucket,
+
 };
