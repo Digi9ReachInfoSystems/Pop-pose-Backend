@@ -15,6 +15,8 @@ app.use("/api/user", require("./routes/userRoutes"));
 app.use("/api/frame", require("./routes/frameRoute"));
 app.use("/api/time", require("./routes/timeRoutes"));
 app.use("/api/background", require("./routes/backgroundRoutes"));
+app.use("/api/consent", require("./routes/consentRoutes"))
+app.use("/api/backdrop", require("./routes/backdropRoutes"))
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

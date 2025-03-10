@@ -7,4 +7,5 @@ router.post("/:userId/select-frame", user.selectFrame);
 router.post("/:userId/select-number", user.createNoOfCopies);
 router.post("/save-images", user.saveImages);
 router.get("/getAllUsers", user.getAllUsers);
+router.post("/provideConsent/:userId", user.provideConsent);
 module.exports = router;

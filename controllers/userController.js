@@ -96,6 +96,32 @@ const createNoOfCopies = async (req, res) => {
   }
 };
 
+const provideConsent = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { consent } = req.body; // expects a boolean value: true or false
+    const user = await userModel.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update consent_Provided based on the client's input
+    user.consent_Provided = consent;
+    await user.save();
+
+    res.status(200).json({ 
+      message: `Consent has been ${consent ? 'provided' : 'revoked'} successfully` 
+    });
+  } catch (err) {
+    console.error("Server error:", err);
+    res.status(500).json({
+      message: "An internal server error occurred. Please try again later.",
+    });
+  }
+};
+
+
 const getUserForPayment = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -209,4 +235,5 @@ module.exports = {
   getUserForPayment,
   saveImages,
   getAllUsers,
+  provideConsent
 };
