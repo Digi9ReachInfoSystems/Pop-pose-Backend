@@ -3,7 +3,7 @@ const copiesModel = require("../models/noofCopiesModel");
 const addCopies = async (req, res) => {
   try {
     const { Number } = req.body;
-    const newCopies = await copiesModel.create({ Number }); // Rename the variable here
+    const newCopies = await copiesModel.create({ Number });
     res.status(201).json({ newCopies });
   } catch (err) {
     console.error("Server error:", err);
@@ -16,7 +16,6 @@ const addCopies = async (req, res) => {
 const getCopies = async (req, res) => {
   try {
     const copies = await copiesModel.find();
-    // console.log(copies);
     res.status(200).json({ copies });
   } catch (err) {
     console.error("Server error:", err);
@@ -28,7 +27,7 @@ const getCopies = async (req, res) => {
 
 const getCopiesById = async (req, res) => {
   try {
-    const { id } = req.params; // Assuming the ID is passed as a route parameter
+    const { id } = req.params;
     const copies = await copiesModel.findById(id);
     if (!copies) {
       return res.status(404).json({ message: "Copies not found" });
