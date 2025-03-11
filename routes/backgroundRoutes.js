@@ -11,5 +11,5 @@ router.post("/register", registerDevice);
 router.get("/devices", getDevices);
 router.put("/update-background-image",upload.single("background_image"), updateBackgroundImage);
 router.delete("/deleteDevice/:device_key", deleteDevice);
-router.get("/getDeviceById/:device_key", getDeviceById);
+router.get("/getDeviceById/:device_key", getDeviceById); //get device by id
 module.exports = router;
