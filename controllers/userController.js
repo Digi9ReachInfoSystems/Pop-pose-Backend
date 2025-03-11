@@ -228,6 +228,22 @@ const getAllUsers = async (req, res) => {
 };
 
 
+const getImagesByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({ images: user.image_captured });
+  } catch (err) {
+    console.error("Server error:", err);
+    res.status(500).json({
+      message: "An internal server error occurred. Please try again later.",
+    });
+  }
+};
+
 module.exports = {
   startUserJourney,
   selectFrame,
@@ -235,5 +251,6 @@ module.exports = {
   getUserForPayment,
   saveImages,
   getAllUsers,
-  provideConsent
+  provideConsent,
+  getImagesByUserId
 };
