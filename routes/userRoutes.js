@@ -8,4 +8,5 @@ router.post("/:userId/select-number", user.createNoOfCopies);
 router.post("/save-images", user.saveImages);
 router.get("/getAllUsers", user.getAllUsers);
 router.post("/provideConsent/:userId", user.provideConsent);
+router.get("/getImagesByUserId/:userId", user.getImagesByUserId);
 module.exports = router;

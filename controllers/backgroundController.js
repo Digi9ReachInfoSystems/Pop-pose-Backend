@@ -94,10 +94,24 @@ async function deleteDevice(req, res) {
         return res.status(500).json({ message: "Internal server error" });
     }
 }
+async function getDeviceById(req, res) {
+    const { device_key } = req.params;
+    try {
+        const device = await Device.findOne({ device_key });
+        if (!device) {
+            return res.status(404).json({ message: "Device not found" });
+        }
+        res.status(200).json(device);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
 
 module.exports = {
     registerDevice,
     getDevices,
     updateBackgroundImage,
     deleteDevice,
+    getDeviceById
 };
