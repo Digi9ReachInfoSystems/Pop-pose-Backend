@@ -1,18 +1,64 @@
 const Frame = require("../models/frameModel");
 
+// Function to generate frame layout (as defined earlier)
+function generateFrameLayout(frame) {
+  const { rows, columns, no_of_photos, padding, horizontal_gap, vertical_gap } =
+    frame;
+
+  // Calculate the width and height of each photo cell
+  const cellWidth = (100 - (columns - 1) * horizontal_gap) / columns;
+  const cellHeight = (100 - (rows - 1) * vertical_gap) / rows;
+
+  const layout = [];
+
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < columns; j++) {
+      if (i * columns + j < no_of_photos) {
+        const photo = {
+          x: j * (cellWidth + horizontal_gap),
+          y: i * (cellHeight + vertical_gap),
+          width: cellWidth,
+          height: cellHeight,
+        };
+        layout.push(photo);
+      }
+    }
+  }
+
+  return layout;
+}
+
+// Create a new frame
 const createFrame = async (req, res) => {
   try {
-    const { frame_size, price, rows, column, index, image, orientation } =
-      req.body;
+    const {
+      frame_size,
+      price,
+      rows,
+      columns,
+      index,
+      image,
+      orientation,
+      no_of_photos,
+      padding,
+      horizontal_gap,
+      vertical_gap,
+      background,
+    } = req.body;
 
     const newFrame = await Frame.create({
       frame_size,
       price,
       rows,
-      column,
+      columns,
       index,
       orientation,
       image,
+      no_of_photos,
+      padding,
+      horizontal_gap,
+      vertical_gap,
+      background,
     });
 
     res.status(201).json({ frame: newFrame });
@@ -24,6 +70,7 @@ const createFrame = async (req, res) => {
   }
 };
 
+// Get all frames
 const getFrames = async (req, res) => {
   try {
     const frames = await Frame.find();
@@ -36,17 +83,23 @@ const getFrames = async (req, res) => {
   }
 };
 
+// Get a frame by ID (with layout generation)
 const getFrameById = async (req, res) => {
   try {
     const { id } = req.params;
     const frame = await Frame.findById(id);
-    
 
     if (!frame) {
       return res.status(404).json({ message: "Frame not found" });
     }
 
-    res.status(200).json({ frame });
+    // Generate layout for the frame
+    const layout = generateFrameLayout(frame);
+
+    // Add layout to the frame object
+    const frameWithLayout = { ...frame.toObject(), layout };
+
+    res.status(200).json({ frame: frameWithLayout });
   } catch (err) {
     console.error("Error fetching frame:", err);
     res.status(500).json({
@@ -55,16 +108,42 @@ const getFrameById = async (req, res) => {
   }
 };
 
+// Update a frame
 const updateFrame = async (req, res) => {
   try {
     const { id } = req.params;
-    const { frame_size, price, rows, column, index, image, orientation } =
-      req.body;
+    const {
+      frame_size,
+      price,
+      rows,
+      column,
+      index,
+      image,
+      orientation,
+      no_of_photos,
+      padding,
+      horizontal_gap,
+      vertical_gap,
+      background,
+    } = req.body;
 
     const updatedFrame = await Frame.findByIdAndUpdate(
       id,
-      { frame_size, price, rows, column, index, image, orientation },
-      { new: true } 
+      {
+        frame_size,
+        price,
+        rows,
+        column,
+        index,
+        image,
+        orientation,
+        no_of_photos,
+        padding,
+        horizontal_gap,
+        vertical_gap,
+        background,
+      },
+      { new: true } // Return the updated document
     );
 
     if (!updatedFrame) {
@@ -80,6 +159,7 @@ const updateFrame = async (req, res) => {
   }
 };
 
+// Delete a frame
 const deleteFrame = async (req, res) => {
   try {
     const { id } = req.params;

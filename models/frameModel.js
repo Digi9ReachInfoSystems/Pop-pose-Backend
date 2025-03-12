@@ -13,7 +13,7 @@ const frameSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  column: {
+  columns: {
     type: Number,
     required: true,
   },
@@ -27,6 +27,26 @@ const frameSchema = new mongoose.Schema({
   orientation: {
     type: String,
     required: true,
+  },
+  no_of_photos: {
+    type: Number,
+  },
+  background: [
+    {
+      type: String,
+    },
+  ],
+  padding: {
+    type: Number,
+    default: 10, // Default padding between images in pixels
+  },
+  horizontal_gap: {
+    type: Number,
+    default: 10, // Default horizontal gap between images in pixels
+  },
+  vertical_gap: {
+    type: Number,
+    default: 10, // Default vertical gap between images in pixels
   },
 });
 
