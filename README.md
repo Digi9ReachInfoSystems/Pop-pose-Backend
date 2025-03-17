@@ -14,3 +14,5 @@
 
 ###7. get all copies
 ###8 backdrop
+
+###9 framne and poayment
