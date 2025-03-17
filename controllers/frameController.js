@@ -1,3 +1,4 @@
+const frameModel = require("../models/frameModel");
 const Frame = require("../models/frameModel");
 
 // Function to generate frame layout (as defined earlier)
@@ -178,10 +179,45 @@ const deleteFrame = async (req, res) => {
   }
 };
 
+const getImagesByFrameId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const frame = await frameModel.findById(id).exec();
+    if (!frame) {
+      return res.status(404).json({ message: "Frame not found" });
+    }
+    res.status(200).json({ images: frame.image });
+  } catch (err) {
+    console.error("Error getting images:", err);
+    res.status(500).json({
+      message: "An internal server error occurred. Please try again later."
+    });
+  }
+};
+
+
+const getBackgroundByFrameId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const frame = await frameModel.findById(id).exec();
+    if (!frame) {
+      return res.status(404).json({ message: "Frame not found" });
+      }
+      res.status(200).json({ background: frame.background });
+  } catch (err) {
+    console.error("Error getting images:", err);
+    res.status(500).json({
+      message: "An internal server error occurred. Please try again later."
+    });
+  }
+};
+
 module.exports = {
   createFrame,
   getFrames,
   getFrameById,
   updateFrame,
   deleteFrame,
+  getImagesByFrameId,
+  getBackgroundByFrameId
 };
