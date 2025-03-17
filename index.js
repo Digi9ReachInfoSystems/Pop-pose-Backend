@@ -18,6 +18,7 @@ app.use("/api/background", require("./routes/backgroundRoutes"));
 app.use("/api/consent", require("./routes/consentRoutes"))
 app.use("/api/backdrop", require("./routes/backdropRoutes"))
 app.use("/api/admin", require("./routes/adminRoutes"))
+app.use("/api/payment", require("./routes/paymentRoutes"))
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
