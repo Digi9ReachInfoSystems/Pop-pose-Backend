@@ -248,7 +248,7 @@ const getImagesByUserId = async (req, res) => {
 const getDetailsByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
-    const user = await userModel.findById(userId);
+    const user = await userModel.findById(userId).populate("frame_Selection no_of_copies");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
