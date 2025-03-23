@@ -24,7 +24,7 @@ app.listen(port, () => {
 
 //orientation as well needs to be updated in frame model************
 
-///for each copy it is 50 rupees
+///for each copy it is 50 rupees  
 
 //by default it is 2 copy
 //timer access  controll

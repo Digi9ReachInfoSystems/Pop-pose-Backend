@@ -9,6 +9,9 @@ const frameSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  shapes: {
+    type: String,
+  },
   rows: {
     type: Number,
     required: true,
