@@ -36,8 +36,6 @@ const createOrder = async (req, res) => {
       receipt,
       notes: {
         userId: userId.toString(),
-        frameId: frameId?.toString() || "",
-        noOfCopiesId: noOfCopiesId?.toString() || "",
       },
     };
 
