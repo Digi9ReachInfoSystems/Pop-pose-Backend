@@ -17,7 +17,7 @@ exports.createOrder = async (req, res) => {
             currency = "INR",
             receipt = "receipt#1"
         } = req.body;
-
+console.log("Razorpay", process.env.RAZORPAY_KEY_ID, process.env.RAZORPAY_KEY_SECRET);
 
         const user = await User.findById(userId);
         if (!user) {
@@ -117,3 +117,18 @@ exports.verifyPayment = async (req, res) => {
     res.json({ status: "ok" });
   };
 
+
+
+  exports.getPaymentByUserId = async (req, res) => {
+    try {
+        const{ userId } = req.params;
+        const payments = await Payment.find({user_Id: userId});
+        return res.status(200).json(payments);
+        } catch (error) {
+            console.error("Error in getPaymentByUserId:", error);
+            return res.status(500).json({
+                success: false,
+                message: "Internal Server Error",
+                });
+                }
+                };
