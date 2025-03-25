@@ -4,10 +4,7 @@ const crypto = require("crypto");
 const Payment = require("../models/paymentModel");
 const User = require("../models/userModel");
 
-const razorpayInstance = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+
 
 exports.createOrder = async (req, res) => {
     try {
@@ -18,7 +15,10 @@ exports.createOrder = async (req, res) => {
             receipt = "receipt#1"
         } = req.body;
 console.log("Razorpay", process.env.RAZORPAY_KEY_ID, process.env.RAZORPAY_KEY_SECRET);
-
+const razorpayInstance = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({
