@@ -14,11 +14,11 @@ exports.createOrder = async (req, res) => {
             currency = "INR",
             receipt = "receipt#1"
         } = req.body;
-console.log("Razorpay", process.env.RAZORPAY_KEY_ID, process.env.RAZORPAY_KEY_SECRET);
-const razorpayInstance = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+        console.log("Razorpay", process.env.RAZORPAY_KEY_ID, process.env.RAZORPAY_KEY_SECRET);
+        const razorpayInstance = new Razorpay({
+            key_id: process.env.RAZORPAY_KEY_ID,
+            key_secret: process.env.RAZORPAY_KEY_SECRET,
+        });
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({
@@ -92,43 +92,47 @@ exports.getAllPayments = async (req, res) => {
 }
 
 exports.verifyPayment = async (req, res) => {
+    const razorpayInstance = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
     const signature = req.headers["x-razorpay-signature"];
     const secrete = "pop-pose-backendaqsedrftgty";
     const generated_signature = crypto.createHmac("sha256", secrete);
     generated_signature.update(JSON.stringify(req.body));
     const digested_signature = generated_signature.digest("hex");
     console.log("body", req.body);
-  
+
     if (digested_signature === signature) {
-    if (req.body.event == "payment.captured") {
-        console.log( req.body.payload.payment);
-        const payment = await Payment.find({order_id: req.body.payload.payment.entity.order_id});
-        if(!payment){
-            return res.status(200).json({message: "Payment not found"});
+        if (req.body.event == "payment.captured") {
+            console.log(req.body.payload.payment);
+            const payment = await Payment.find({ order_id: req.body.payload.payment.entity.order_id });
+            if (!payment) {
+                return res.status(200).json({ message: "Payment not found" });
+            }
+            payment.payment_Completed = true;
+            await payment.save(); t
+            console.log("Payment link paid, custom package updated successfully");
         }
-        payment.payment_Completed = true;
-        await payment.save();t
-      console.log("Payment link paid, custom package updated successfully");
-    }
     } else {
-      console.log("Invalid signature");
+        console.log("Invalid signature");
     }
-  
+
     res.json({ status: "ok" });
-  };
+};
 
 
 
-  exports.getPaymentByUserId = async (req, res) => {
+exports.getPaymentByUserId = async (req, res) => {
     try {
-        const{ userId } = req.params;
-        const payments = await Payment.find({user_Id: userId});
+        const { userId } = req.params;
+        const payments = await Payment.find({ user_Id: userId });
         return res.status(200).json(payments);
-        } catch (error) {
-            console.error("Error in getPaymentByUserId:", error);
-            return res.status(500).json({
-                success: false,
-                message: "Internal Server Error",
-                });
-                }
-                };
+    } catch (error) {
+        console.error("Error in getPaymentByUserId:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
+    }
+};
