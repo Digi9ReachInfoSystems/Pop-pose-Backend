@@ -10,4 +10,5 @@ router.get("/getAllUsers", user.getAllUsers);
 router.post("/provideConsent/:userId", user.provideConsent);
 router.get("/getImagesByUserId/:userId", user.getImagesByUserId);
 router.get("/getDetailsByUserId/:userId", user.getDetailsByUserId);
+router.delete("/deleteImagesByUserId/:userId", user.deleteImagesCapturedByUserId);
 module.exports = router;
