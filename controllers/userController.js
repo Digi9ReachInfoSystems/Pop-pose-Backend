@@ -262,6 +262,24 @@ const getDetailsByUserId = async (req, res) => {
   };
 }
 
+const deleteImagesCapturedByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    user.image_captured = [];
+    await user.save();
+    res.status(200).json({ message: "Images deleted successfully" });
+  } catch (err) {
+    console.error("Server error:", err);
+    res.status(500).json({
+      message: "An internal server error occurred. Please try again later.",
+    });
+  }
+};
+
 module.exports = {
   startUserJourney,
   selectFrame,
@@ -271,5 +289,6 @@ module.exports = {
   getAllUsers,
   provideConsent,
   getImagesByUserId,
-  getDetailsByUserId
+  getDetailsByUserId,
+  deleteImagesCapturedByUserId
 };
