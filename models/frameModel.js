@@ -11,6 +11,7 @@ const frameSchema = new mongoose.Schema({
   },
   shapes: {
     type: String,
+    default: "circle",
   },
   rows: {
     type: Number,
