@@ -64,6 +64,12 @@ const userSchema = new mongoose.Schema({
       type: String,
     },
   ],
+  qr_code_id: {
+    type: String,
+  },
+  customer_id: {
+    type: String,
+  },
   created_At: {
     type: Date,
   },
