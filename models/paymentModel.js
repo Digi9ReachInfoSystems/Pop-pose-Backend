@@ -5,9 +5,8 @@ const paymentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "user",
   },
-  paymentMethod: {
+  customer_Id: {
     type: String,
-    required: true,
   },
   payment_Completed: {
     type: Boolean,
@@ -29,7 +28,13 @@ const paymentSchema = new mongoose.Schema({
   },
   reciept_id:{
     type:String
-  }
+  },
+  qrId: {
+    type: String,
+  },
+  paymentId: {
+    type: String,
+  },
 });
 
 module.exports = mongoose.model("payment", paymentSchema);

@@ -1,4 +1,4 @@
-  {
+{
   "name": "backendpopandpose",
   "version": "1.0.0",
   "description": "Backend for pop and pose",
@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/Digi9ReachInfoSystems/Pop-pose-Backend#readme",
   "dependencies": {
-    "axios": "^1.8.1",
+    "axios": "^1.8.4",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
