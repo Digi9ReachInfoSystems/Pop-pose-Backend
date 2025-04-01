@@ -346,3 +346,37 @@ exports.getPaymentStatus = async (req, res) => {
         });
     }
 };
+
+exports.getAllPayments = async (req, res) => {
+    try {
+        const payments = await Payment.find().populate("user_Id").lean();
+        return res.status(200).json({
+            success: true,
+            message: "All payments fetched successfully",
+            payments: payments,
+        });
+    } catch (error) {
+        console.error("Error in getAllPayments:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
+    }
+};
+exports.getPaymentByUserId = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const payments = await Payment.find({ user_Id: userId }).populate("user_Id").lean();
+        return res.status(200).json({
+            success: true,
+            message: "All payments fetched successfully",
+            payments: payments,
+        });
+    } catch (error) {
+        console.error("Error in getAllPayments:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
+    }
+};
