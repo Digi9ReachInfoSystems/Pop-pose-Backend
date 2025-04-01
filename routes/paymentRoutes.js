@@ -2,13 +2,9 @@ const express = require('express');
 const router = express.Router();
 const paymentController = require('../controllers/paymentContoller');
 
-// Route to create Razorpay Customer
-router.post('/create-customer', paymentController.createCustomer);
-
-// // Route to generate Razorpay QR Code
-router.post('/generate-qr', paymentController.generateQRCode);
-
-// // Route to verify payment status
-router.post('/verify-payment/:qrCodeId', paymentController.checkPaymentStatus);
-
+router.post("/create-payment", paymentController.createPayment);
+router.get("/get-all-payments", paymentController.getAllPayments);
+router.post("/payment-captured", paymentController.verifyPayment);
+router.get("/get-payment-by-userId/:userId", paymentController.getPaymentByUserId);
+router.post("/getPaymentStatus", paymentController.getPaymentStatus);
 module.exports = router;

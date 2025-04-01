@@ -1,60 +1,15 @@
-const Razorpay = require('razorpay');
-const mongoose = require('mongoose');
-const User = require('../models/userModel');  // Assuming you have a User model in MongoDB
-const axios = require('axios');
-const Payment = require('../models/paymentModel');
-const razorpayInstance = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+require("dotenv").config();
+const Razorpay = require("razorpay");
+const crypto = require("crypto");
+const Payment = require("../models/paymentModel");
+const User = require("../models/userModel");
+const axios = require("axios");
+const { validateWebhookSignature } = require('razorpay/dist/utils/razorpay-utils')
 
-exports.createCustomer = async (req, res) => {
-    const { userId } = req.body;
-    console.log('userId:', userId);
 
-    try {
-        const user = await User.findOne({ _id: new mongoose.Types.ObjectId(userId) });
 
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
 
-        const existingCustomer = await razorpayInstance.customers.all({
-            contact: user.phone_Number || null,
-            email: user.email || null,
-        });
-
-        if (existingCustomer && existingCustomer.items && existingCustomer.items.length > 0) {
-        
-            console.log('Customer already exists:', existingCustomer.items[0]);
-
-            // Update the user document with the existing Razorpay customer_id
-            user.customer_id = existingCustomer.items[0].id;
-            await user.save();  // Save the customer_id to MongoDB
-            return res.status(200).json({ customer: existingCustomer.items[0] });
-        }
-
-        // Razorpay customer options
-        const options = {
-            name: user.user_Name,
-            email: user.email || null,
-            contact: user.phone_Number || null,
-        };
-
-        // Create customer on Razorpay
-        const customer = await razorpayInstance.customers.create(options);
-
-        // Store the Razorpay customer_id in the MongoDB User document
-        user.customer_id = customer.id;  // Save Razorpay customer_id
-        await user.save();  // Save the updated user with customer_id
-
-        res.status(200).json({ customer });
-
-    } catch (error) {
-        console.error('Error creating Razorpay customer:', error);
-        res.status(500).json({ error: 'Failed to create Razorpay customer' });
-    }
-};
+   
 
 
 
@@ -124,42 +79,58 @@ exports.createCustomer = async (req, res) => {
 //     }
 // };
 
-exports.generateQRCode = async (req, res) => {
-    const { customer_id, type, name, usage, fixed_amount, payment_amount, description, notes } = req.body;
+// exports.generateQRCode = async (req, res) => {
+//     const { customer_id, type, name, usage, fixed_amount, payment_amount, description, notes } = req.body;
 
-    console.log('Received request body:', req.body);
+//     console.log('Received request body:', req.body);
 
-    try {
-        // Verify if the customer exists in your database using customer_id (not ObjectId)
-        const user = await User.findOne({ customer_id: customer_id });  // No need for ObjectId conversion
+//     try {
+//         // Verify if the customer exists in your database using customer_id (not ObjectId)
+//         const user = await User.findOne({ customer_id: customer_id });  // No need for ObjectId conversion
 
-        if (!user) {
-            return res.status(404).json({ error: 'User not found for the provided customerId' });
-        }
+exports.verifyPayment = async (req, res) => {
+    
+    const razorpayInstance = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID_PROD,
+        key_secret: process.env.RAZORPAY_KEY_SECRET_PROD,
+    });
+    const signature = req.headers["x-razorpay-signature"];
+    const secrete = "popandposeaqawesrdtfyguhij";
+    const generated_signature = crypto.createHmac("sha256", secrete);
+    generated_signature.update(JSON.stringify(req.body));
+    const digested_signature = generated_signature.digest("hex");
+    console.log("body", req.body);
+    console.log("sig", signature);
+    console.log("dig", digested_signature);
+    const webhookSignature = req.headers['x-razorpay-signature'];
+    const webhookBody = req.body;
+    const webhookSecret = 'popandposeaqawesrdtfyguhij';  // Replace with your actual webhook secret
 
-        // Razorpay QR Code options
-        const qrCodeOptions = {
-            type: type || 'upi_qr',  // Default to 'upi_qr' if not provided
-            name: name || 'poppose',  // Default to 'poppose' if not provided
-            usage: usage || 'single_use',  // Default to 'single_use' if not provided
-            fixed_amount: fixed_amount !== undefined ? fixed_amount : true,  // Default to true if not provided
-            payment_amount: payment_amount || 100,  // Default to 100 if not provided
-            description: description || 'pop pose',  // Default to 'pop pose' if not provided
-            customer_id: customer_id,  // Razorpay customer ID
-            notes: notes || { purpose: 'Test UPI QR Code notes' },  // Default notes if not provided
-        };
-
-        // Request for Razorpay QR Code
-        const qrCodeResponse = await axios.post(
-            'https://api.razorpay.com/v1/payments/qr_codes',
-            qrCodeOptions,
-            {
-                auth: {
-                    username: process.env.RAZORPAY_KEY_ID,
-                    password: process.env.RAZORPAY_KEY_SECRET,
-                },
+    const isValidSignature = validateWebhookSignature(
+        JSON.stringify(webhookBody),
+        webhookSignature,
+        webhookSecret
+    );
+    console.log("isValidSignature", isValidSignature);
+    console.log("isValidSignature", digested_signature === signature);
+    // if (digested_signature === signature) {
+        if (req.body.event == "qr_code.credited") {
+            console.log(req.body.payload.qr_code.entity);
+            const payment = await Payment.findOne({ customer_Id: req.body.payload.payment.entity.customer_id, qrId: req.body.payload.qr_code.entity.id });
+            console.log("payment", payment);
+            payment.payment_Completed = true;
+            payment.paymentId = req.body.payload.payment.entity.id;
+            await payment.save();
+            if (!payment) {
+                return res.status(200).json({ message: "Payment not found" });
             }
-        );
+            payment.payment_Completed = true;
+            await payment.save(); 
+            console.log("Payment link paid, custom package updated successfully");
+        }
+    // } else {
+    //     console.log("Invalid signature");
+    // }
 
         console.log('QR Code generated:', qrCodeResponse.data);
 
@@ -192,10 +163,10 @@ exports.generateQRCode = async (req, res) => {
             message: 'QR code generated and saved successfully!',
             updatedUser: updatedUser,  // Returning the updated user details
         });
-    } catch (error) {
-        console.error('Error generating QR code:', error);
-        res.status(500).json({ error: 'Failed to generate Razorpay QR code' });
-    }
+//     } catch (error) {
+//         console.error('Error generating QR code:', error);
+//         res.status(500).json({ error: 'Failed to generate Razorpay QR code' });
+//     }
 };
 
 
@@ -267,5 +238,111 @@ exports.checkPaymentStatus = async (req, res) => {
     } catch (error) {
         console.error('Error fetching payment status:', error);
         res.status(500).json({ error: 'Failed to fetch payment status from Razorpay.' });
+    }
+};
+
+exports.createPayment = async (req, res) => {
+    try {
+        const { user_Id, amount } = req.body;
+        const user = await User.findById(user_Id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+        const razorpayInstance = new Razorpay({
+            key_id: process.env.RAZORPAY_KEY_ID_PROD,
+            key_secret: process.env.RAZORPAY_KEY_SECRET_PROD,
+        });
+        const customer = await axios.post("https://api.razorpay.com/v1/customers", {
+            name: user.user_Name,
+            // email: user.email,
+            contact: user.phone_Number,
+            fail_existing: "0",
+        }, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Basic ${Buffer.from(`${process.env.RAZORPAY_KEY_ID_PROD}:${process.env.RAZORPAY_KEY_SECRET_PROD}`).toString("base64")}`,
+            },
+        });
+        console.log("customer", customer);
+        const closeByTimestamp = (Math.floor(Date.now() / 1000))+130;
+        const qrCode=await razorpayInstance.qrCode.create({
+            type: "upi_qr",
+            usage: "single_use",
+            fixed_amount: true,
+            payment_amount: (amount * 100),
+            customer_id: customer.data.id,
+            close_by: closeByTimestamp
+          })
+        // const qrCode = await axios.post("https://api.razorpay.com/v1/payments/qr_codes", {
+        //     type: "upi_qr",
+        //     usage: "single_use",
+        //     fixed_amount: true,
+        //     payment_amount: (amount * 100),
+        //     customer_id: customer.data.id,
+        //     close_by: 1681615838,
+        // }, {
+        //     headers: {
+        //         "Content-Type": "application/json",
+        //         Authorization: `Basic ${Buffer.from(`${process.env.RAZORPAY_KEY_ID_PROD}:${process.env.RAZORPAY_KEY_SECRET_PROD}`).toString("base64")}`,
+        //     },
+        // });
+        const paymentData = new Payment({
+            user_Id: user_Id,
+            payment_method: "upi_qr",
+            payment_Completed: false,
+            qrId: qrCode.id,
+            customer_Id: customer.data.id
+        })
+        const payment = await paymentData.save();
+        return res.status(201).json({
+            success: true,
+            message: "Payment created successfully",
+            customerId: customer.data.id,
+            qrCodeId: qrCode.id,
+            qrCode: qrCode.image_url,
+            close_by: qrCode.close_by
+
+        });
+    } catch (error) {
+        console.error("Error in createPayment:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+            error: error
+        });
+    }
+};
+exports.getPaymentStatus = async (req, res) => {
+    try {
+        const { userId, qrId } = req.body;
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        const payment = await Payment.findOne({ user_Id: user._id, qrId: qrId }).populate("user_Id").lean();
+        if (!payment) {
+            return res.status(404).json({
+                success: false,
+                message: "Payment not found",
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Payment status fetched successfully",
+            payment: payment,
+        });
+    } catch (error) {
+        console.error("Error in getPaymentStatus:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
     }
 };
