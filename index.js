@@ -23,33 +23,3 @@ app.use("/api/coupon", require("./routes/couponRoutes"))
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
-
-//orientation as well needs to be updated in frame model************
-
-///for each copy it is 50 rupees  
-
-//by default it is 2 copy
-//timer access  controll
-// the no of photos should be double the no of frames selected
-//camera timer should be dynamic
-// both the timers should be controlled by admin panel
-
-//2by6 4by6
-
-///background has to be based on orientation
-//consent things has to been implemented for social media sharing.
-//login for settings page as well . general id for all
-//admin can change the id password .
-
-
-//location for one particualr booth .
-
-
-//location permission for given ....
-
-//main background of the applicationm should bve dynamic 
-
-//zoom in and zoom out 
-//tilt with frame of image 
-//settings also needs rotation
-

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const paymentSchema = new mongoose.Schema({
   user_Id: {
@@ -37,4 +37,4 @@ const paymentSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("payment", paymentSchema);
+module.exports = mongoose.model('Customer', paymentSchema);

@@ -7,92 +7,89 @@ const axios = require("axios");
 const { validateWebhookSignature } = require('razorpay/dist/utils/razorpay-utils')
 
 
-exports.createOrder = async (req, res) => {
-    try {
-        const {
-            userId,
-            amount,
-            currency = "INR",
-            receipt = "receipt#1"
-        } = req.body;
-        console.log("Razorpay", process.env.RAZORPAY_KEY_ID, process.env.RAZORPAY_KEY_SECRET);
-        const razorpayInstance = new Razorpay({
-            key_id: process.env.RAZORPAY_KEY_ID,
-            key_secret: process.env.RAZORPAY_KEY_SECRET,
-        });
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found",
-            });
-        }
 
-        await user.save();
 
-        // 3) Prepare order options for Razorpay
-        const options = {
-            amount: amount * 100, // convert rupees to paise
-            currency,
-            receipt,
-            notes: {
-                userId: userId.toString(),
-            },
-        };
+   
 
-        // 4) Create order in Razorpay
-        const order = await razorpayInstance.orders.create(options);
-        if (!order) {
-            return res.status(500).json({
-                success: false,
-                message: "Order creation failed",
-            });
-        }
 
-        // 5) Save payment details in MongoDB
-        const paymentData = new Payment({
-            user_Id: userId,
-            paymentMethod: "Razorpay",
-            payment_Completed: false,
-            payment_Details: JSON.stringify(order),
-            payment_method: "online", // or 'razorpay'
-            order_id: order.id,
-            reciept_id: order.receipt
 
-        });
+// exports.generateQRCode = async (req, res) => {
+//     const { customer_id, type, name, usage, fixed_amount, payment_amount, description, notes } = req.body;
 
-        await paymentData.save();
+//     console.log('Received request body:', req.body);
 
-        // 6) Send response to client with the Razorpay order
-        return res.status(201).json({
-            success: true,
-            message: "Razorpay order created successfully",
-            order,
-            paymentId: paymentData._id,
-        });
-    } catch (error) {
-        console.error("Error in createOrder:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal Server Error",
-        });
-    }
-};
+//     try {
+//         // Verify if the customer exists in your database using customer_id (not ObjectId)
+//         const user = await User.findOne({ customer_id: customer_id });  // No need for ObjectId conversion
 
-exports.getAllPayments = async (req, res) => {
-    try {
-        const payments = await Payment.find().populate("user_Id");
-        return res.status(200).json(payments);
-    } catch (error) {
-        console.error("Error in getAllPayments:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal Server Error",
-        });
-    }
-}
+//         if (!user) {
+//             return res.status(404).json({ error: 'User not found for the provided customerId' });
+//         }
+
+//         // Razorpay QR Code options
+//         const qrCodeOptions = {
+//             type: type || 'upi_qr',  // Default to 'upi_qr' if not provided
+//             name: name || 'poppose',  // Default to 'poppose' if not provided
+//             usage: usage || 'single_use',  // Default to 'single_use' if not provided
+//             fixed_amount: fixed_amount !== undefined ? fixed_amount : true,  // Default to true if not provided
+//             payment_amount: payment_amount || 100,  // Default to 100 if not provided
+//             description: description || 'pop pose',  // Default to 'pop pose' if not provided
+//             customer_id: customer_id,  // Razorpay customer ID
+//             notes: notes || { purpose: 'Test UPI QR Code notes' },  // Default notes if not provided
+//         };
+
+//         // Request for Razorpay QR Code
+//         const qrCodeResponse = await axios.post(
+//             'https://api.razorpay.com/v1/payments/qr_codes',
+//             qrCodeOptions,
+//             {
+//                 auth: {
+//                     username: process.env.RAZORPAY_KEY_ID,
+//                     password: process.env.RAZORPAY_KEY_SECRET,
+//                 },
+//             }
+//         );
+
+//         console.log('QR Code generated:', qrCodeResponse.data);
+
+//         // Get the QR code ID from the response
+//         const qrCodeId = qrCodeResponse.data.id;
+
+//         // Save the QR code ID to the User document in MongoDB
+//         const updatedUser = await User.findOneAndUpdate(
+//             { customer_id: customer_id },  // Find the user by customer_id
+//             { qr_code_id: qrCodeId },  // Update the user with the QR code ID
+//             { new: true }  // Return the updated document
+//         );
+
+//         if (!updatedUser) {
+//             console.error('Failed to update user with QR code ID');
+//             return res.status(500).json({ error: 'Failed to update user with QR code ID' });
+//         }
+
+//         // Return the QR code data (including the qr_id and image_url)
+//         res.status(200).json({
+//             qrCode: qrCodeResponse.data,
+//             message: 'QR code generated and saved successfully!',
+//             updatedUser: updatedUser,  // Returning the updated user details
+//         });
+//     } catch (error) {
+//         console.error('Error generating QR code:', error);
+//         res.status(500).json({ error: 'Failed to generate Razorpay QR code' });
+//     }
+// };
+
+// exports.generateQRCode = async (req, res) => {
+//     const { customer_id, type, name, usage, fixed_amount, payment_amount, description, notes } = req.body;
+
+//     console.log('Received request body:', req.body);
+
+//     try {
+//         // Verify if the customer exists in your database using customer_id (not ObjectId)
+//         const user = await User.findOne({ customer_id: customer_id });  // No need for ObjectId conversion
 
 exports.verifyPayment = async (req, res) => {
+    
     const razorpayInstance = new Razorpay({
         key_id: process.env.RAZORPAY_KEY_ID_PROD,
         key_secret: process.env.RAZORPAY_KEY_SECRET_PROD,
@@ -135,22 +132,112 @@ exports.verifyPayment = async (req, res) => {
     //     console.log("Invalid signature");
     // }
 
-    res.json({ status: "ok" });
+        console.log('QR Code generated:', qrCodeResponse.data);
+
+        // Check if Razorpay QR Code response contains valid data
+        if (!qrCodeResponse.data || !qrCodeResponse.data.id) {
+            console.error('Invalid response from Razorpay for QR code');
+            return res.status(500).json({ error: 'Invalid response from Razorpay for QR code generation' });
+        }
+
+        // Get the QR code ID from the response
+        const qrCodeId = qrCodeResponse.data.id;
+
+        // Save the QR code ID to the User document in MongoDB
+        const updatedUser = await User.findOneAndUpdate(
+            { customer_id: customer_id },  // Find the user by customer_id
+            { qr_code_id: qrCodeId },  // Update the user with the QR code ID
+            { new: true, upsert: false }  // Return the updated document, don't create a new user if it doesn't exist
+        );
+
+        if (!updatedUser) {
+            console.error('Failed to update user with QR code ID');
+            return res.status(500).json({ error: 'Failed to update user with QR code ID' });
+        }
+
+        console.log('User updated with QR code ID:', updatedUser);
+
+        // Return the QR code data (including the qr_id and image_url)
+        res.status(200).json({
+            qrCode: qrCodeResponse.data,
+            message: 'QR code generated and saved successfully!',
+            updatedUser: updatedUser,  // Returning the updated user details
+        });
+//     } catch (error) {
+//         console.error('Error generating QR code:', error);
+//         res.status(500).json({ error: 'Failed to generate Razorpay QR code' });
+//     }
 };
 
 
 
-exports.getPaymentByUserId = async (req, res) => {
+exports.checkPaymentStatus = async (req, res) => {
+    const { qrCodeId } = req.params; // Pass the QR code ID in the request body
+    console.log('Received qrCodeId:', qrCodeId);
+
     try {
-        const { userId } = req.params;
-        const payments = await Payment.find({ user_Id: userId });
-        return res.status(200).json(payments);
-    } catch (error) {
-        console.error("Error in getPaymentByUserId:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal Server Error",
+        // Endpoint to get payment status for the QR code
+        const endpoint = `https://api.razorpay.com/v1/payments/qr_codes/${qrCodeId}/payments`;
+
+        // Make the request to the Razorpay API
+        const response = await axios.get(endpoint, {
+            auth: {
+                username: process.env.RAZORPAY_KEY_ID,
+                password: process.env.RAZORPAY_KEY_SECRET,
+            },
         });
+
+        console.log('Payment status response:', response.data);
+
+        // Check if payment information exists in the response
+        if (response.data && response.data.items && response.data.items.length > 0) {
+            const paymentDetails = response.data.items[0];
+            const paymentStatus = paymentDetails.status; // Get the payment status
+
+            // Find the user associated with this QR code
+            const user = await User.findOne({ qr_code_id: qrCodeId });
+
+            if (!user) {
+                return res.status(404).json({ error: 'User not found for the provided QR code' });
+            }
+
+            // Create a new payment document in the payment collection
+            const newPayment = new Payment({
+                user_id: user._id,
+                qr_code_id: qrCodeId,
+                image_url: paymentDetails.image_url || '',
+                customer_id: paymentDetails.customer_id,
+                payment_amount: paymentDetails.amount,
+                description: paymentDetails.description || 'Payment for service',
+                payment_success: paymentStatus === 'captured', // Mark as true if the payment was successful
+            });
+
+            // Save the payment details to the Payment collection
+            await newPayment.save();
+
+            // Update user collection: set payment_Completed to true and reference the payment details
+            user.payment_Completed = paymentStatus === 'captured';
+            user.payment_Details = newPayment._id; // Reference to the payment document
+            await user.save();
+
+            // Also update payment_success in payment document
+            newPayment.payment_success = paymentStatus === 'captured';
+            await newPayment.save();
+
+            // Respond with success
+            res.status(200).json({
+                message: 'Payment status fetched and updated successfully!',
+                paymentStatus: paymentStatus,
+                paymentDetails: newPayment,
+                updatedUser: user,
+            });
+        } else {
+            // If no payment info is found
+            res.status(404).json({ error: 'No payments found for the provided QR code.' });
+        }
+    } catch (error) {
+        console.error('Error fetching payment status:', error);
+        res.status(500).json({ error: 'Failed to fetch payment status from Razorpay.' });
     }
 };
 
