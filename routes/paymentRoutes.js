@@ -11,4 +11,5 @@ router.post('/generate-qr', paymentController.generateQRCode);
 // // Route to verify payment status
 router.post('/verify-payment/:qrCodeId', paymentController.checkPaymentStatus);
 
+router.get('/getPaymentByUserId', paymentController.getPaymentsByUserId);
 module.exports = router;
