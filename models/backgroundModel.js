@@ -15,10 +15,10 @@ const backgroundSchema = new mongoose.Schema({
         required: true,
         default: "https://images.pexels.com/photos/674010/pexels-photo-674010.jpeg", // Replace with your default image URL
     },
-   
 
+ 
     device_location: {
-       Country: {
+        Country: {
             type: String,
             required: true,
         },
@@ -30,8 +30,15 @@ const backgroundSchema = new mongoose.Schema({
             type: String,
             required: true,
         },
-       
     },
+    latitude: {
+        type: Number,
+        required: true,
+    },
+    longitude: {
+        type: Number,
+        required: true,
+    }
 });
 
 module.exports = mongoose.model("Device", backgroundSchema);

@@ -4,30 +4,85 @@ const { v4: uuidv4 } = require("uuid");
 const { uploadFileToFirebase } = require("../utilities/firebaseutility");
 
 const axios = require("axios");
-async function registerDevice(req, res) {
-    const { device_key, device_name, latitude, longitude } = req.body;
+// async function registerDevice(req, res) {
+//     const { device_key, device_name, latitude, longitude } = req.body;
 
-    if (!device_key || !device_name || !latitude || !longitude) {
+//     if (!device_key || !device_name || !latitude || !longitude) {
+//         return res.status(400).json({ message: "Missing required fields" });
+//     }
+//     try {
+
+//         const response= await axios.get(`https://api.opencagedata.com/geocode/v1/json?key=${process.env.OPEN_CAGE_API_KEY}&q=${latitude}%2C+${longitude}&pretty=1&no_annotations=1`)
+  
+//         const device = new Device({
+//             device_key,
+//             device_name,
+//             device_location: {
+//                 Country:response.data.results[0].components.country,
+//                 City:response.data.results[0].components.city,
+//                 state:response.data.results[0].components.state,
+//             },
+//         });
+
+//         console.log("Device Information",device);
+
+//         await device.save();
+//         console.log(device);
+
+//         return res.status(201).json({
+//             message: "Device registered successfully",
+//             device,
+//         });
+
+//     } catch (err) {
+//         console.error(err);
+//         return res.status(500).json({ message: "Internal server error" });
+//     }
+// }
+
+
+
+async function registerDevice(req, res) {
+    const { device_key, device_name, address } = req.body;
+
+    if (!device_key || !device_name || !address) {
         return res.status(400).json({ message: "Missing required fields" });
     }
-    try {
 
-        const response= await axios.get(`https://api.opencagedata.com/geocode/v1/json?key=${process.env.OPEN_CAGE_API_KEY}&q=${latitude}%2C+${longitude}&pretty=1&no_annotations=1`)
-  
+    try {
+        // Get latitude and longitude from OpenCage API based on the address
+        const response = await axios.get(`https://api.opencagedata.com/geocode/v1/json?key=${process.env.OPEN_CAGE_API_KEY}&q=${encodeURIComponent(address)}&pretty=1&no_annotations=1`);
+
+        // Check if any results were found
+        if (!response.data.results || response.data.results.length === 0) {
+            return res.status(400).json({ message: "Address could not be geocoded" });
+        }
+
+        // Extract latitude and longitude from the response
+        const latitude = response.data.results[0].geometry.lat;
+        const longitude = response.data.results[0].geometry.lng;
+
+        // Extract country, city, and state
+        const { country, city, state } = response.data.results[0].components;
+
+        // Create the device object
         const device = new Device({
             device_key,
             device_name,
             device_location: {
-                Country:response.data.results[0].components.country,
-                City:response.data.results[0].components.city,
-                state:response.data.results[0].components.state,
+                Country: country || '',
+                City: city || '',
+                state: state || '',
             },
+            latitude,
+            longitude,
         });
 
-        console.log("Device Information",device);
+        console.log("Device Information", device);
 
+        // Save the device object to the database
         await device.save();
-        console.log(device);
+        console.log("Device saved:", device);
 
         return res.status(201).json({
             message: "Device registered successfully",
@@ -39,6 +94,7 @@ async function registerDevice(req, res) {
         return res.status(500).json({ message: "Internal server error" });
     }
 }
+
 
 async function getDevices(req, res) {
     try {
