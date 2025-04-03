@@ -1,22 +1,40 @@
 const mongoose = require('mongoose');
 
 const paymentSchema = new mongoose.Schema({
-  user_id: {
-   type: mongoose.Schema.Types.ObjectId,
-    ref: 'user'
+  user_Id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "user",
   },
-  
-  qr_code_id: {
-    type:String,
+  customer_Id: {
+    type: String,
   },
-  image_url: String,
-  customer_id: String,
-  payment_amount: Number,
-  description: String,
-  payment_completed: {
-    type: mongoose.Schema.Types.Boolean,
-  }
+  payment_Completed: {
+    type: Boolean,
+    default: false,
+  },
+  payment_Details: {
+    type: String,
+  },
+  payment_method: {
+    type: String,
+    required: true,
+  },
+  created_at: {
+    type: Date,
+    default: Date.now,
+  },
+  order_id: {
+    type: String,
+  },
+  reciept_id:{
+    type:String
+  },
+  qrId: {
+    type: String,
+  },
+  paymentId: {
+    type: String,
+  },
+});
 
-}, { timestamps: true });
-
-module.exports = mongoose.model('payment', paymentSchema);
+module.exports = mongoose.model('Payment', paymentSchema);
