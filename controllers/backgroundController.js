@@ -5,23 +5,34 @@ const { uploadFileToFirebase } = require("../utilities/firebaseutility");
 
 const axios = require("axios");
 async function registerDevice(req, res) {
-    const { device_key, device_name, latitude, longitude } = req.body;
+    const { device_key, device_name, address } = req.body;
 
-    if (!device_key || !device_name || !latitude || !longitude) {
+    if (!device_key || !device_name || !address) {
         return res.status(400).json({ message: "Missing required fields" });
     }
     try {
 
-        const response= await axios.get(`https://api.opencagedata.com/geocode/v1/json?key=${process.env.OPEN_CAGE_API_KEY}&q=${latitude}%2C+${longitude}&pretty=1&no_annotations=1`)
-  
+        const response = await axios.get(`https://api.opencagedata.com/geocode/v1/json?key=${process.env.OPEN_CAGE_API_KEY}&q=${encodeURIComponent(address)}&pretty=1&no_annotations=1`);
+       
+       
+        if (!response.data.results || response.data.results.length === 0) {
+            return res.status(400).json({ message: "Address could not be geocoded" });
+          }
+          const latitude = response.data.results[0].geometry.lat;
+          const longitude = response.data.results[0].geometry.lng;
+          const { country, city, state } = response.data.results[0].components;
+       
         const device = new Device({
             device_key,
             device_name,
             device_location: {
-                Country:response.data.results[0].components.country,
-                City:response.data.results[0].components.city,
-                state:response.data.results[0].components.state,
+                
+                Country : country || '',
+                City : city || '',
+                state : state || '',
             },
+            latitude,
+            longitude
         });
 
         console.log("Device Information",device);
