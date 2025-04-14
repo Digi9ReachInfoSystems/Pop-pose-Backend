@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 
 const frameSchema = new mongoose.Schema({
+  overlay: {
+    type:Boolean,
+    default:false
+  },
   frame_size: {
     type: String,
     required: true,
@@ -43,6 +47,21 @@ const frameSchema = new mongoose.Schema({
   padding: {
     type: Number,
     default: 10, // Default padding between images in pixels
+  },
+
+  bottomPadding: {
+    type: Number,
+    default: 10, // Default bottom padding between images in pixels
+  },
+  topPadding: {
+    type: Number,
+    default: 10, // Default top padding between images in pixels
+  },
+  is4by6:{
+    type:Boolean,
+  },
+  is2by6:{
+    type:Boolean,
   },
   horizontal_gap: {
     type: Number,

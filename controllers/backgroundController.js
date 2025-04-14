@@ -5,40 +5,45 @@ const { uploadFileToFirebase } = require("../utilities/firebaseutility");
 
 const axios = require("axios");
 async function registerDevice(req, res) {
-    const { device_key, device_name, address } = req.body;
+    const { device_key, device_name, address,base_url,printer_name } = req.body;
 
     if (!device_key || !device_name || !address) {
         return res.status(400).json({ message: "Missing required fields" });
     }
     try {
-
         const response = await axios.get(`https://api.opencagedata.com/geocode/v1/json?key=${process.env.OPEN_CAGE_API_KEY}&q=${encodeURIComponent(address)}&pretty=1&no_annotations=1`);
-       
-       
+
         if (!response.data.results || response.data.results.length === 0) {
             return res.status(400).json({ message: "Address could not be geocoded" });
-          }
-          const latitude = response.data.results[0].geometry.lat;
-          const longitude = response.data.results[0].geometry.lng;
-          const { country, city, state } = response.data.results[0].components;
-       
+        }
+
+        const result = response.data.results[0];
+        const latitude = result.geometry.lat;
+        const longitude = result.geometry.lng;
+
+        // Handle different possible location component names
+        const components = result.components;
+        const city = components.city || components.town || components.village || components.county || 'Unknown';
+
+        if (!components.country) {
+            return res.status(400).json({ message: "Could not determine country from address" });
+        }
+
         const device = new Device({
             device_key,
             device_name,
+            base_url,
+            printer_name,
             device_location: {
-                
-                Country : country || '',
-                City : city || '',
-                state : state || '',
+                Country: components.country,
+                City: city,
+                state: components.state || ''
             },
             latitude,
             longitude
         });
 
-        console.log("Device Information",device);
-
         await device.save();
-        console.log(device);
 
         return res.status(201).json({
             message: "Device registered successfully",
@@ -53,7 +58,8 @@ async function registerDevice(req, res) {
 
 async function getDevices(req, res) {
     try {
-        const devices = await Device.find();
+        const devices = await Device.find()
+            .sort({ createdAt: -1 });;
 
         if (devices.length === 0) {
             return res.status(404).json({ message: "No devices found" });
@@ -81,7 +87,7 @@ async function updateBackgroundImage(req, res) {
         if (!device) {
             return res.status(404).json({ message: "Device not found" });
         }
-        const fileUrl= await uploadFileToFirebase(file);
+        const fileUrl = await uploadFileToFirebase(file);
         device.background_image = fileUrl;
         await device.save();
         res.status(200).json({ message: "Background image updated successfully", device });
@@ -119,10 +125,33 @@ async function getDeviceById(req, res) {
     }
 }
 
+
+async function updateUrl(req, res) {
+    const { device_key } = req.params;
+    const { base_url } = req.body;
+    try {
+      const device = await Device.findOneAndUpdate(
+        { device_key },
+        { $set: { base_url } },
+        { new: true, runValidators: false }  // Note: runValidators is set to false.
+      );
+      if (!device) {
+        return res.status(404).json({ message: "Device not found" });
+      }
+      res.status(200).json({ message: "Device updated successfully", device });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+  
+
+
 module.exports = {
     registerDevice,
     getDevices,
     updateBackgroundImage,
     deleteDevice,
-    getDeviceById
+    getDeviceById,
+    updateUrl
 };

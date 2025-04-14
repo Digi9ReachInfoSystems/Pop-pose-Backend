@@ -3,7 +3,8 @@ const copiesModel = require("../models/noofCopiesModel");
 const addCopies = async (req, res) => {
   try {
     const { Number } = req.body;
-    const newCopies = await copiesModel.create({ Number });
+    const newCopies = await copiesModel.create({ Number })
+    .sort({ createdAt: -1 });
     res.status(201).json({ newCopies });
   } catch (err) {
     console.error("Server error:", err);
@@ -15,7 +16,9 @@ const addCopies = async (req, res) => {
 
 const getCopies = async (req, res) => {
   try {
-    const copies = await copiesModel.find();
+    const copies = await copiesModel.find()
+    
+    .sort({ createdAt: -1 });;
     res.status(200).json({ copies });
   } catch (err) {
     console.error("Server error:", err);
