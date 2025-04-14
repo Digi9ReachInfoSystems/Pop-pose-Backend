@@ -9,4 +9,5 @@ router.put("/frames/:id", frameController.updateFrame); // Update a frame by ID
 router.delete("/frames/:id", frameController.deleteFrame); // Delete a frame by ID
 router.get("/getImagesByFrmaeId/:id", frameController.getImagesByFrameId);
 router.get("/getBackgroundByFrameId/:id", frameController.getBackgroundByFrameId);
+
 module.exports = router;

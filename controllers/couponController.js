@@ -124,9 +124,24 @@ const deleteCopuponsById = async (req, res) => {
     res.status(500).json({ message: err.message });
   } 
 }
+
+const getframeandnumberofcopiesdetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const coupon = await Coupon.findById(id).populate('frameSelection').populate('noOfCopies');
+    if (!coupon) {
+      return res.status(404).json({ message: "Coupon not found" });
+    }
+    res.status(200).json({ coupon });
+  } catch (err) {
+    console.error("Server error", err);
+    res.status(500).json({ message: err.message });
+  }
+}
 module.exports = {
   generateCoupon,
   validateCoupon,
   getAllCoupons,
-  deleteCopuponsById
+  deleteCopuponsById,
+  getframeandnumberofcopiesdetails
 };
