@@ -98,7 +98,35 @@ const validateCoupon = async (req, res) => {
   }
 };
 
+
+
+const getAllCoupons = async (req, res) => {
+  try {
+    const coupons = await Coupon.find().populate('frameSelection').populate('noOfCopies')
+    .sort({ createdAt: -1 });
+    return res.status(200).json({ coupons });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+const deleteCopuponsById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedCoupon = await Coupon.findByIdAndDelete(id);
+    if (!deletedCoupon) {
+      return res.status(404).json({ message: "Coupon not found" });
+    }
+    res.status(200).json({ message: "Coupon deleted successfully" });
+  } catch (err) {
+    console.error("Server error", err);
+    res.status(500).json({ message: err.message });
+  } 
+}
 module.exports = {
   generateCoupon,
-  validateCoupon
+  validateCoupon,
+  getAllCoupons,
+  deleteCopuponsById
 };

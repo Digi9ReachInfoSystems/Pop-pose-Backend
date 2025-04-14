@@ -3,7 +3,7 @@ const Frame = require("../models/frameModel");
 
 // Function to generate frame layout (as defined earlier)
 function generateFrameLayout(frame) {
-  const { rows, columns, no_of_photos, padding, horizontal_gap, vertical_gap } =
+  const { rows, columns, no_of_photos, padding, horizontal_gap, vertical_gap} =
     frame;
 
   // Calculate the width and height of each photo cell
@@ -42,10 +42,15 @@ const createFrame = async (req, res) => {
       orientation,
       no_of_photos,
       padding,
+      bottomPadding,
+      topPadding,
       shapes,
       horizontal_gap,
       vertical_gap,
       background,
+      overlay,
+      is4by6,
+      is2by6,
     } = req.body;
 
     const newFrame = await Frame.create({
@@ -59,10 +64,16 @@ const createFrame = async (req, res) => {
       shapes,
       no_of_photos,
       padding,
+      bottomPadding,
+      topPadding,
       horizontal_gap,
       vertical_gap,
       background,
-    });
+      overlay,
+      is4by6,
+      is2by6
+    })
+    
 
     res.status(201).json({ frame: newFrame });
   } catch (err) {
@@ -76,7 +87,9 @@ const createFrame = async (req, res) => {
 // Get all frames
 const getFrames = async (req, res) => {
   try {
-    const frames = await Frame.find();
+    const frames = await Frame.find()
+    
+    .sort({ createdAt: -1 });
     res.status(200).json({ frames });
   } catch (err) {
     console.error("Error fetching frames:", err);
@@ -119,7 +132,7 @@ const updateFrame = async (req, res) => {
       frame_size,
       price,
       rows,
-      column,
+      columns,
       index,
       image,
       orientation,
@@ -128,6 +141,11 @@ const updateFrame = async (req, res) => {
       horizontal_gap,
       vertical_gap,
       background,
+      overlay,
+      topPadding,
+      bottomPadding,
+      is4by6,
+      is2by6,
     } = req.body;
 
     const updatedFrame = await Frame.findByIdAndUpdate(
@@ -136,7 +154,7 @@ const updateFrame = async (req, res) => {
         frame_size,
         price,
         rows,
-        column,
+        columns,
         index,
         image,
         orientation,
@@ -145,6 +163,11 @@ const updateFrame = async (req, res) => {
         horizontal_gap,
         vertical_gap,
         background,
+        overlay,
+        topPadding,
+        bottomPadding,
+        is4by6,
+        is2by6
       },
       { new: true } // Return the updated document
     );
@@ -166,6 +189,7 @@ const updateFrame = async (req, res) => {
 const deleteFrame = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log(id);
     const deletedFrame = await Frame.findByIdAndDelete(id);
 
     if (!deletedFrame) {
