@@ -3,8 +3,13 @@ const router = express.Router();
 const multer = require("multer");
 
 const user = require("../controllers/userController");
-const upload = multer({ dest: "uploads/" }); 
-
+// Use memory storage instead of disk storage
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 20 * 1024 * 1024, // Limit file size to 5MB
+  },
+});
 router.get("/:userId/getUser", user.getUserForPayment);
 router.post("/start", user.startUserJourney);
 router.post("/:userId/select-frame", user.selectFrame);

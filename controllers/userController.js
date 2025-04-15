@@ -6,6 +6,8 @@ const multer = require("multer");
 const path = require("path");
 const nodemailer = require("nodemailer");
 const fs = require("fs");
+const { uploadFileToFirebase } = require("../utilities/firebaseutility");
+const { bucket } = require("../config/firebaseConfig"); // Import Firebase storage bucket
 
 const storageConfig = multer.memoryStorage();
 
@@ -280,6 +282,7 @@ const deleteImagesCapturedByUserId = async (req, res) => {
     });
   }
 };
+
 const sendFrameToEmail = async (req, res) => {
   try {
     // Check if file and email are present in the request
@@ -326,7 +329,7 @@ const sendFrameToEmail = async (req, res) => {
       attachments: [
         {
           filename: imageFile.originalname,
-          content: fs.createReadStream(imageFile.path),
+          content: imageFile.buffer, // Use the in-memory buffer
           contentType: imageFile.mimetype,
         },
       ],
@@ -335,9 +338,6 @@ const sendFrameToEmail = async (req, res) => {
     // Send email
     await transporter.sendMail(mailOptions);
 
-    // Delete the temporary file after sending
-    fs.unlinkSync(imageFile.path);
-
     return res.status(200).json({
       success: true,
       message: "Image sent to email successfully",
@@ -345,16 +345,61 @@ const sendFrameToEmail = async (req, res) => {
   } catch (error) {
     console.error("Error sending email:", error);
 
-    // Clean up the file if something went wrong
-    if (req.file && req.file.path) {
-      fs.unlinkSync(req.file.path);
-    }
-
     return res.status(500).json({
       success: false,
       message: "Failed to send image to email",
       error: error.message,
     });
+  }
+};
+const uploadToUserModel = async (userId, imageFile) => {
+  try {
+    if (!userId || !imageFile) {
+      throw new Error("Missing userId or image file");
+    }
+
+    // Generate a unique filename
+    const filename = `frame_images/${userId}_${uuidv4()}.jpg`;
+    const file = bucket.file(filename);
+
+    // Upload the image to Firebase Storage
+    await file.save(imageFile.buffer, {
+      metadata: {
+        contentType: imageFile.mimetype,
+      },
+      public: true, // Make the file publicly accessible
+    });
+
+    // Get the public URL
+    const [url] = await file.getSignedUrl({
+      action: "read",
+      expires: "03-09-2491", // Far future date
+    });
+
+    // Update the user document in MongoDB
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          frame_image: url,
+          updatedAt: new Date(),
+        },
+      },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedUser) {
+      throw new Error("User not found");
+    }
+
+    return {
+      success: true,
+      imageUrl: url,
+      user: updatedUser,
+    };
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    throw error;
   }
 };
 module.exports = {

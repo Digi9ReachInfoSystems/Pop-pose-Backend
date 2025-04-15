@@ -5,6 +5,9 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  frame_image: {
+    type: String,
+  },
   phone_Number: {
     type: String,
     required: true,
