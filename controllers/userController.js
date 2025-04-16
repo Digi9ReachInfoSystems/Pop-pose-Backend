@@ -246,16 +246,26 @@ const getImagesByUserId = async (req, res) => {
     });
   }
 };
-
 const getDetailsByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
+
+    // Find the user and populate the frame_Selection and its frameImage field
     const user = await userModel
       .findById(userId)
-      .populate("frame_Selection no_of_copies").populate("frameImage");
+      .populate({
+        path: "frame_Selection", // Populate the frame_Selection field
+        populate: {
+          path: "frameImage", // Populate the frameImage field inside the Frame model
+          model: "frameImage", // Ensure this matches the name of the Frame model
+        },
+      })
+      .populate("no_of_copies");
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+
     res.status(200).json({ user });
   } catch (err) {
     console.error("Server error:", err);
