@@ -47,6 +47,7 @@ const generateCoupon = async (req, res) => {
       couponCode,
       frameSelection: frameSelection || null,
       noOfCopies: noOfCopies || null,
+      couponId: newCoupon._id
     });
   } catch (error) {
     console.error(error);
