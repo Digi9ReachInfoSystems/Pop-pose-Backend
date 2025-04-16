@@ -3,7 +3,7 @@ const Frame = require("../models/frameModel");
 
 // Function to generate frame layout (as defined earlier)
 function generateFrameLayout(frame) {
-  const { rows, columns, no_of_photos, padding, horizontal_gap, vertical_gap} =
+  const { rows, columns, no_of_photos, padding, horizontal_gap, vertical_gap } =
     frame;
 
   // Calculate the width and height of each photo cell
@@ -51,6 +51,14 @@ const createFrame = async (req, res) => {
       overlay,
       is4by6,
       is2by6,
+      frameImage,
+      one,
+      two,
+      three,
+      four,
+      five,
+      six,
+      seven
     } = req.body;
 
     const newFrame = await Frame.create({
@@ -71,9 +79,17 @@ const createFrame = async (req, res) => {
       background,
       overlay,
       is4by6,
-      is2by6
+      is2by6,
+      frameImage,
+      one,
+      two,
+      three,
+      four,
+      five,
+      six,
+      seven
     })
-    
+
 
     res.status(201).json({ frame: newFrame });
   } catch (err) {
@@ -88,8 +104,9 @@ const createFrame = async (req, res) => {
 const getFrames = async (req, res) => {
   try {
     const frames = await Frame.find()
-    
-    .sort({ createdAt: -1 });
+    .populate("frameImage") 
+
+      .sort({ createdAt: -1 });
     res.status(200).json({ frames });
   } catch (err) {
     console.error("Error fetching frames:", err);
@@ -228,8 +245,8 @@ const getBackgroundByFrameId = async (req, res) => {
     const frame = await frameModel.findById(id).exec();
     if (!frame) {
       return res.status(404).json({ message: "Frame not found" });
-      }
-      res.status(200).json({ background: frame.background });
+    }
+    res.status(200).json({ background: frame.background });
   } catch (err) {
     console.error("Error getting images:", err);
     res.status(500).json({
