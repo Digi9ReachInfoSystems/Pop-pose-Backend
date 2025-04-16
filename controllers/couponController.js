@@ -89,7 +89,8 @@ const validateCoupon = async (req, res) => {
       couponDetails: {
         frameSelection: coupon.frameSelection,
         noOfCopies: coupon.noOfCopies,
-        remainingInstances: coupon.totalInstances - coupon.instancesClaimed
+        remainingInstances: coupon.totalInstances - coupon.instancesClaimed,
+        couponId: coupon._id
       }
     });
 
