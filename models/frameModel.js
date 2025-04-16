@@ -71,6 +71,32 @@ const frameSchema = new mongoose.Schema({
     type: Number,
     default: 10, // Default vertical gap between images in pixels
   },
+  one:{
+    type:Boolean,
+  },
+  two:{
+    type:Boolean,
+    },
+    three:{
+      type:Boolean,
+    },
+    four:{
+      type:Boolean,
+    },
+    five:{
+      type:Boolean,
+    },
+    six:{
+      type:Boolean,
+    },
+    seven:{
+      type:Boolean,
+    },
+    frameImage :{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'frameImage',
+    },
+    
 });
 
 module.exports = mongoose.model("frame", frameSchema);

@@ -16,6 +16,10 @@ const backgroundSchema = new mongoose.Schema({
     printer_name:{
         type:String,
     },
+    no_of_rolls: {
+        type: Number,
+        default: 0
+    },
     background_image: {
         type: String,
         required: true,
