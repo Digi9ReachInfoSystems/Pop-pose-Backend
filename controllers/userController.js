@@ -4,6 +4,10 @@ const { storage } = require("../config/firebaseConfig");
 const admin = require("firebase-admin");
 const multer = require("multer");
 const path = require("path");
+const nodemailer = require("nodemailer");
+const fs = require("fs");
+const { uploadFileToFirebase } = require("../utilities/firebaseutility");
+const { bucket } = require("../config/firebaseConfig"); // Import Firebase storage bucket
 
 const storageConfig = multer.memoryStorage();
 
@@ -74,8 +78,6 @@ const selectFrame = async (req, res) => {
   }
 };
 
-
-
 const createNoOfCopies = async (req, res) => {
   try {
     const { numberId } = req.body;
@@ -110,8 +112,10 @@ const provideConsent = async (req, res) => {
     user.consent_Provided = consent;
     await user.save();
 
-    res.status(200).json({ 
-      message: `Consent has been ${consent ? 'provided' : 'revoked'} successfully` 
+    res.status(200).json({
+      message: `Consent has been ${
+        consent ? "provided" : "revoked"
+      } successfully`,
     });
   } catch (err) {
     console.error("Server error:", err);
@@ -120,7 +124,6 @@ const provideConsent = async (req, res) => {
     });
   }
 };
-
 
 const getUserForPayment = async (req, res) => {
   try {
@@ -215,9 +218,10 @@ const saveImages = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   try {
-    const users = await userModel.find()
-    .populate("frame_Selection no_of_copies")
-    .exec();
+    const users = await userModel
+      .find()
+      .populate("frame_Selection no_of_copies")
+      .exec();
     res.status(200).json({ users });
   } catch (err) {
     console.error("Server error:", err);
@@ -226,7 +230,6 @@ const getAllUsers = async (req, res) => {
     });
   }
 };
-
 
 const getImagesByUserId = async (req, res) => {
   try {
@@ -244,11 +247,12 @@ const getImagesByUserId = async (req, res) => {
   }
 };
 
-
 const getDetailsByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
-    const user = await userModel.findById(userId).populate("frame_Selection no_of_copies");
+    const user = await userModel
+      .findById(userId)
+      .populate("frame_Selection no_of_copies");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -256,11 +260,10 @@ const getDetailsByUserId = async (req, res) => {
   } catch (err) {
     console.error("Server error:", err);
     res.status(500).json({
-    message: "An internal server error occurred. Please try again later.",
+      message: "An internal server error occurred. Please try again later.",
     });
-  
-  };
-}
+  }
+};
 
 const deleteImagesCapturedByUserId = async (req, res) => {
   try {
@@ -280,15 +283,135 @@ const deleteImagesCapturedByUserId = async (req, res) => {
   }
 };
 
+const sendFrameToEmail = async (req, res) => {
+  try {
+    // Check if file and email are present in the request
+    if (!req.file || !req.body.email) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide both an image file and an email address",
+      });
+    }
+
+    const { email } = req.body;
+    const imageFile = req.file;
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid email address",
+      });
+    }
+
+    // Create transporter with SMTP settings
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST, // e.g., 'smtp.yourdomain.com'
+      port: process.env.SMTP_PORT || 587, // Typically 587 for TLS, 465 for SSL
+      secure: process.env.SMTP_SECURE === "true", // true for 465, false for other ports
+      auth: {
+        user: process.env.SMTP_USERNAME,
+        pass: process.env.SMTP_PASSWORD,
+      },
+      tls: {
+        // Do not fail on invalid certs
+        rejectUnauthorized: process.env.SMTP_REJECT_UNAUTHORIZED !== "false",
+      },
+    });
+
+    // Email options
+    const mailOptions = {
+      from: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USERNAME,
+      to: email,
+      subject: "Your Image Attachment",
+      text: "Please find your attached image.",
+      attachments: [
+        {
+          filename: imageFile.originalname,
+          content: imageFile.buffer, // Use the in-memory buffer
+          contentType: imageFile.mimetype,
+        },
+      ],
+    };
+
+    // Send email
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({
+      success: true,
+      message: "Image sent to email successfully",
+    });
+  } catch (error) {
+    console.error("Error sending email:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to send image to email",
+      error: error.message,
+    });
+  }
+};
+const uploadToUserModel = async (userId, imageFile) => {
+  try {
+    if (!userId || !imageFile) {
+      throw new Error("Missing userId or image file");
+    }
+
+    // Generate a unique filename
+    const filename = `frame_images/${userId}_${uuidv4()}.jpg`;
+    const file = bucket.file(filename);
+
+    // Upload the image to Firebase Storage
+    await file.save(imageFile.buffer, {
+      metadata: {
+        contentType: imageFile.mimetype,
+      },
+      public: true, // Make the file publicly accessible
+    });
+
+    // Get the public URL
+    const [url] = await file.getSignedUrl({
+      action: "read",
+      expires: "03-09-2491", // Far future date
+    });
+
+    // Update the user document in MongoDB
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          frame_image: url,
+          updatedAt: new Date(),
+        },
+      },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedUser) {
+      throw new Error("User not found");
+    }
+
+    return {
+      success: true,
+      imageUrl: url,
+      user: updatedUser,
+    };
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    throw error;
+  }
+};
 module.exports = {
   startUserJourney,
   selectFrame,
   createNoOfCopies,
   getUserForPayment,
+  sendFrameToEmail,
   saveImages,
   getAllUsers,
   provideConsent,
   getImagesByUserId,
   getDetailsByUserId,
-  deleteImagesCapturedByUserId
+  deleteImagesCapturedByUserId,
 };
