@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { registerDevice, getDevices, updateBackgroundImage, deleteDevice,getDeviceById,updateUrl } = require("../controllers/backgroundController");
+const { registerDevice, getDevices, getRemainingCopies,updateBackgroundImage, deleteDevice,getDeviceById,updateUrl } = require("../controllers/backgroundController");
 const multer = require("multer");
 const path = require("path")
 
@@ -13,4 +13,5 @@ router.put("/update-background-image",upload.single("background_image"), updateB
 router.delete("/deleteDevice/:device_key", deleteDevice);
 router.get("/getDeviceById/:device_key", getDeviceById); //get device by id
 router.put("/updateUrl/:device_key", updateUrl);
+router.get("/getRemainingCopies/:id", getRemainingCopies);
 module.exports = router;

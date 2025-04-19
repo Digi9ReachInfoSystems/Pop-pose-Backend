@@ -22,7 +22,7 @@ const backgroundSchema = new mongoose.Schema({
     },
     background_image: {
         type: String,
-        required: true,
+        required: false,
         default: "https://images.pexels.com/photos/674010/pexels-photo-674010.jpeg",
     },
     device_location: {
@@ -44,11 +44,11 @@ const backgroundSchema = new mongoose.Schema({
     },
     latitude: {
         type: Number,
-        required: true,
+        required: false,
     },
     longitude: {
         type: Number,
-        required: true,
+        required: false,
     },
 });
 

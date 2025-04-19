@@ -8,6 +8,8 @@ const nodemailer = require("nodemailer");
 const fs = require("fs");
 const { uploadFileToFirebase } = require("../utilities/firebaseutility");
 const { bucket } = require("../config/firebaseConfig"); // Import Firebase storage bucket
+const Background = require("../models/backgroundModel")
+const NumberOfCopies = require("../models/noofCopiesModel")
 
 const storageConfig = multer.memoryStorage();
 
@@ -18,9 +20,9 @@ const upload = multer({
 
 const startUserJourney = async (req, res) => {
   try {
-    const { user_Name, phone_Number, email } = req.body;
-
-    if (!user_Name || !phone_Number || !email) {
+    const { user_Name, phone_Number, email, device_key } = req.body;
+    console.log(req.body);
+    if (!user_Name || !phone_Number || !email || !device_key) {
       return res.status(400).json({
         message: "All fields (user_Name, phone_Number, email) are required.",
       });
@@ -30,6 +32,7 @@ const startUserJourney = async (req, res) => {
       user_Name,
       phone_Number,
       email,
+      device_key
     });
 
     res.status(201).json({ user });
@@ -52,7 +55,7 @@ const startUserJourney = async (req, res) => {
 
 const registerDevice = async (req, res) => {
   try {
-  } catch {}
+  } catch { }
 };
 
 const selectFrame = async (req, res) => {
@@ -88,6 +91,12 @@ const createNoOfCopies = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
     user.no_of_copies = numberId;
+    const no_of_copies = await NumberOfCopies.findById(numberId);
+    const background = await Background.findOne({ device_key: user.device_key });
+    if (background) {
+      background.no_of_rolls = background.no_of_rolls - no_of_copies.Number;
+      await background.save();
+    }
     await user.save();
     res.status(200).json({ message: "Copies added successfully" });
   } catch (err) {
@@ -113,9 +122,8 @@ const provideConsent = async (req, res) => {
     await user.save();
 
     res.status(200).json({
-      message: `Consent has been ${
-        consent ? "provided" : "revoked"
-      } successfully`,
+      message: `Consent has been ${consent ? "provided" : "revoked"
+        } successfully`,
     });
   } catch (err) {
     console.error("Server error:", err);

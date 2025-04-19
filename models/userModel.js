@@ -29,6 +29,17 @@ const userSchema = new mongoose.Schema({
       message: (props) => `${props.value} is not a valid email!`,
     },
   },
+
+
+
+  device_key: {
+    type: String,
+    required: true,
+    // unique: false
+  },
+
+
+
   payment_Completed: {
     type: Boolean,
     default: false,
@@ -62,6 +73,7 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "noOfCopies",
   },
+
   image_captured: [
     {
       type: String,
