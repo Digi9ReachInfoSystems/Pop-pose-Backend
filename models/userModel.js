@@ -88,6 +88,10 @@ const userSchema = new mongoose.Schema({
   created_At: {
     type: Date,
   },
+  
+  finalImage : {
+    type: String,
+  },
 });
 
 module.exports = mongoose.model("user", userSchema);

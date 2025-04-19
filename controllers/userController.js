@@ -10,6 +10,7 @@ const { uploadFileToFirebase } = require("../utilities/firebaseutility");
 const { bucket } = require("../config/firebaseConfig"); // Import Firebase storage bucket
 const Background = require("../models/backgroundModel")
 const NumberOfCopies = require("../models/noofCopiesModel")
+const Frame = require("../models/frameModel")
 
 const storageConfig = multer.memoryStorage();
 
@@ -420,6 +421,65 @@ const uploadToUserModel = async (userId, imageFile) => {
     throw error;
   }
 };
+
+
+///i should be able to count the totasl number of users
+
+const totalUseras = async (req, res) => {
+  try {
+    const count = await userModel.countDocuments();
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error("Server error:", error);
+    res.status(500).json({
+      message: "An internal server error occurred. Please try again later.",
+    });
+  }
+}
+
+const totalFrames = async (req, res) => {
+  try {
+    const count = await Frame.countDocuments();
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error("Server error:", error);
+    res.status(500).json({
+      message: "An internal server error occurred. Please try again later.",
+    });
+  }
+}
+
+const totalNoOfCopies = async (req, res) => {
+  try {
+    const count = await NumberOfCopies.countDocuments();
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error("Server error:", error);
+    res.status(500).json({
+      message: "An internal server error occurred. Please try again later.",
+    });
+  }
+}
+
+const uplaodImageUsingUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const imageFile = req.file;
+    const imageUrl = await uploadFileToFirebase(imageFile);
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    user.finalImage = imageUrl;
+    const result = await user.save();
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Server error:", error);
+    res.status(500).json({
+      message: "An internal server error occurred. Please try again later.",
+    });
+  }
+}
 module.exports = {
   startUserJourney,
   selectFrame,
@@ -432,4 +492,8 @@ module.exports = {
   getImagesByUserId,
   getDetailsByUserId,
   deleteImagesCapturedByUserId,
+  totalUseras,
+  totalFrames,
+  totalNoOfCopies,
+  uplaodImageUsingUserId
 };
