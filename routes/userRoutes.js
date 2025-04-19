@@ -58,4 +58,9 @@ router.delete(
   "/deleteImagesByUserId/:userId",
   user.deleteImagesCapturedByUserId
 );
+
+router.get("/getTotalCount", user.totalUseras);
+router.get("/getTotalFrames", user.totalFrames);
+router.get("/getTotalCopies", user.totalNoOfCopies);
+router.post("/uplaodImageUsingUserId/:userId",upload.single("finalImage") ,user.uplaodImageUsingUserId);
 module.exports = router;
