@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 
 const frameSchema = new mongoose.Schema({
   overlay: {
-    type:Boolean,
-    default:false
+    type: Boolean,
+    default: false
   },
   frame_size: {
     type: String,
@@ -57,11 +57,11 @@ const frameSchema = new mongoose.Schema({
     type: Number,
     default: 10, // Default top padding between images in pixels
   },
-  is4by6:{
-    type:Boolean,
+  is4by6: {
+    type: Boolean,
   },
-  is2by6:{
-    type:Boolean,
+  is2by6: {
+    type: Boolean,
   },
   horizontal_gap: {
     type: Number,
@@ -71,32 +71,32 @@ const frameSchema = new mongoose.Schema({
     type: Number,
     default: 10, // Default vertical gap between images in pixels
   },
-  one:{
-    type:Boolean,
+  one: {
+    type: Boolean,
   },
-  two:{
-    type:Boolean,
-    },
-    three:{
-      type:Boolean,
-    },
-    four:{
-      type:Boolean,
-    },
-    five:{
-      type:Boolean,
-    },
-    six:{
-      type:Boolean,
-    },
-    seven:{
-      type:Boolean,
-    },
-    frameImage :{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'frameImage',
-    },
-    
+  two: {
+    type: Boolean,
+  },
+  three: {
+    type: Boolean,
+  },
+  four: {
+    type: Boolean,
+  },
+  five: {
+    type: Boolean,
+  },
+  six: {
+    type: Boolean,
+  },
+  seven: {
+    type: Boolean,
+  },
+  frameImage: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'frameImage',
+  },
+
 });
 
 module.exports = mongoose.model("frame", frameSchema);

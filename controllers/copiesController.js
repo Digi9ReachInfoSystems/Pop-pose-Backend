@@ -4,7 +4,7 @@ const addCopies = async (req, res) => {
   try {
     const { Number } = req.body;
     const newCopies = await copiesModel.create({ Number })
-    .sort({ createdAt: -1 });
+   
     res.status(201).json({ newCopies });
   } catch (err) {
     console.error("Server error:", err);
