@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const userSchema = new mongoose.Schema({
   user_Name: {
     type: String,
-    required: true,
+    // required: true,
   },
   frame_image: {
     type: String,
@@ -34,7 +34,7 @@ const userSchema = new mongoose.Schema({
 
   device_key: {
     type: String,
-    required: true,
+    // required: true,
     // unique: false
   },
 

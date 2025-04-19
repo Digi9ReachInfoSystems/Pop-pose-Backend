@@ -22,6 +22,7 @@ app.use("/api/payment", require("./routes/paymentRoutes"))
 app.use("/api/coupon", require("./routes/couponRoutes"))
 app.use("/api/frameImage", require("./routes/frameImageRoutes"))
 app.use("/api/pageTimer", require("./routes/pageTimerRoutes"))
+app.use("/api/rating", require("./routes/ratingRoutes"))
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
