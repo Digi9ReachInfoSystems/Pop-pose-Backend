@@ -62,5 +62,5 @@ router.delete(
 router.get("/getTotalCount", user.totalUseras);
 router.get("/getTotalFrames", user.totalFrames);
 router.get("/getTotalCopies", user.totalNoOfCopies);
-router.post("/uplaodImageUsingUserId/:userId",upload.single("finalImage") ,user.uplaodImageUsingUserId);
+router.put("/uplaodImageUsingUserId/:userId",upload.single("finalImage") ,user.uplaodImageUsingUserId);
 module.exports = router;
