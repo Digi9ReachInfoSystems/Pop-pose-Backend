@@ -99,7 +99,6 @@ const createFrame = async (req, res) => {
   }
 };
 
-// Get all frames
 const getFrames = async (req, res) => {
   try {
     const frames = await Frame.find()
@@ -115,7 +114,6 @@ const getFrames = async (req, res) => {
   }
 };
 
-// Get a frame by ID (with layout generation)
 const getFrameById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -140,7 +138,6 @@ const getFrameById = async (req, res) => {
   }
 };
 
-// Update a frame
 const updateFrame = async (req, res) => {
   try {
     const { id } = req.params;
