@@ -253,6 +253,22 @@ const getBackgroundByFrameId = async (req, res) => {
   }
 };
 
+const getFrameDetailsById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const frame = await Frame.findById(id).exec();
+    if (!frame) {
+      return res.status(404).json({ message: "Frame not found" });
+    }
+    res.status(200).json({ frame });
+  } catch (err) {
+    console.error("Error getting frame details:", err);
+    res.status(500).json({
+      message: "An internal server error occurred. Please try again later.",
+    });
+  }
+};
+
 const createFrameUpdated = async (req, res) => {
   try {
     const {
@@ -331,6 +347,7 @@ module.exports = {
   getFrames,
   getFrameById,
   updateFrame,
+  getFrameDetailsById,
   deleteFrame,
   createFrameUpdated,
   getImagesByFrameId,
