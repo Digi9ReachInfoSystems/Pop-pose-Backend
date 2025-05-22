@@ -1,102 +1,54 @@
 const mongoose = require("mongoose");
 
 const frameSchema = new mongoose.Schema({
-  overlay: {
-    type: Boolean,
-    default: false
-  },
-  frame_size: {
-    type: String,
-    required: true,
-  },
-  price: {
-    type: Number,
-    required: true,
-  },
-  shapes: {
-    type: String,
-    default: "circle",
-  },
-  rows: {
-    type: Number,
-    required: true,
-  },
-  columns: {
-    type: Number,
-    required: true,
-  },
-  index: {
-    type: Number,
-    required: true,
-  },
-  image: {
-    type: String,
-  },
-  orientation: {
-    type: String,
-    required: true,
-  },
-  no_of_photos: {
-    type: Number,
-  },
-  background: [
+  overlay: { type: Boolean, default: false },
+  frame_size: { type: String, required: true },
+  price: { type: Number, required: true },
+  shapes: { type: String, default: "circle" },
+  rows: { type: Number, required: true },
+  columns: { type: Number, required: true },
+  index: { type: Number, required: true },
+  image: { type: String },
+  orientation: { type: String, required: true }, // Horizontal or Vertical
+  no_of_photos: { type: Number },
+
+  // Store all individual placeholder data
+  placeholders: [
     {
-      type: String,
+      id: Number,
+      x: Number,
+      y: Number,
+      width: Number,
+      height: Number,
+      padding: {
+        left: Number,
+        top: Number,
+        right: Number,
+        bottom: Number,
+      },
     },
   ],
-  padding: {
-    type: Number,
-    default: 10, // Default padding between images in pixels
-  },
+  background: [{ type: String }],
+  padding: { type: Number, default: 10 },
+  bottomPadding: { type: Number, default: 10 },
+  topPadding: { type: Number, default: 10 },
+  horizontal_gap: { type: Number, default: 10 },
+  vertical_gap: { type: Number, default: 10 },
 
-  bottomPadding: {
-    type: Number,
-    default: 10, // Default bottom padding between images in pixels
-  },
-  topPadding: {
-    type: Number,
-    default: 10, // Default top padding between images in pixels
-  },
-  is4by6: {
-    type: Boolean,
-  },
-  is2by6: {
-    type: Boolean,
-  },
-  horizontal_gap: {
-    type: Number,
-    default: 10, // Default horizontal gap between images in pixels
-  },
-  vertical_gap: {
-    type: Number,
-    default: 10, // Default vertical gap between images in pixels
-  },
-  one: {
-    type: Boolean,
-  },
-  two: {
-    type: Boolean,
-  },
-  three: {
-    type: Boolean,
-  },
-  four: {
-    type: Boolean,
-  },
-  five: {
-    type: Boolean,
-  },
-  six: {
-    type: Boolean,
-  },
-  seven: {
-    type: Boolean,
-  },
+  is4by6: { type: Boolean },
+  is2by6: { type: Boolean },
+  one: { type: Boolean },
+  two: { type: Boolean },
+  three: { type: Boolean },
+  four: { type: Boolean },
+  five: { type: Boolean },
+  six: { type: Boolean },
+  seven: { type: Boolean },
+
   frameImage: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'frameImage',
+    ref: "frameImage",
   },
-
 });
 
 module.exports = mongoose.model("frame", frameSchema);

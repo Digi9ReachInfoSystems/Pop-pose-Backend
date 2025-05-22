@@ -58,7 +58,7 @@ const createFrame = async (req, res) => {
       four,
       five,
       six,
-      seven
+      seven,
     } = req.body;
 
     const newFrame = await Frame.create({
@@ -87,9 +87,8 @@ const createFrame = async (req, res) => {
       four,
       five,
       six,
-      seven
-    })
-
+      seven,
+    });
 
     res.status(201).json({ frame: newFrame });
   } catch (err) {
@@ -104,7 +103,7 @@ const createFrame = async (req, res) => {
 const getFrames = async (req, res) => {
   try {
     const frames = await Frame.find()
-    .populate("frameImage") 
+      .populate("frameImage")
 
       .sort({ createdAt: -1 });
     res.status(200).json({ frames });
@@ -184,7 +183,7 @@ const updateFrame = async (req, res) => {
         topPadding,
         bottomPadding,
         is4by6,
-        is2by6
+        is2by6,
       },
       { new: true } // Return the updated document
     );
@@ -233,11 +232,10 @@ const getImagesByFrameId = async (req, res) => {
   } catch (err) {
     console.error("Error getting images:", err);
     res.status(500).json({
-      message: "An internal server error occurred. Please try again later."
+      message: "An internal server error occurred. Please try again later.",
     });
   }
 };
-
 
 const getBackgroundByFrameId = async (req, res) => {
   try {
@@ -250,11 +248,84 @@ const getBackgroundByFrameId = async (req, res) => {
   } catch (err) {
     console.error("Error getting images:", err);
     res.status(500).json({
-      message: "An internal server error occurred. Please try again later."
+      message: "An internal server error occurred. Please try again later.",
     });
   }
 };
 
+exports.createFrameUpdated = async (req, res) => {
+  try {
+    const {
+      frame_size,
+      price,
+      shapes,
+      rows,
+      columns,
+      index,
+      image,
+      orientation,
+      no_of_photos,
+      background,
+      padding,
+      bottomPadding,
+      topPadding,
+      horizontal_gap,
+      vertical_gap,
+      is4by6,
+      is2by6,
+      one,
+      two,
+      three,
+      four,
+      five,
+      six,
+      seven,
+      frameImage,
+      placeholders,
+    } = req.body;
+
+    const frame = new Frame({
+      frame_size,
+      price,
+      shapes,
+      rows,
+      columns,
+      index,
+      image,
+      orientation,
+      no_of_photos,
+      background,
+      padding,
+      bottomPadding,
+      topPadding,
+      horizontal_gap,
+      vertical_gap,
+      is4by6,
+      is2by6,
+      one,
+      two,
+      three,
+      four,
+      five,
+      six,
+      seven,
+      frameImage,
+      placeholders,
+    });
+
+    const savedFrame = await frame.save();
+    return res.status(201).json({
+      message: "Frame created successfully",
+      data: savedFrame,
+    });
+  } catch (error) {
+    console.error("Error creating frame:", error);
+    return res.status(500).json({
+      message: "Failed to create frame",
+      error: error.message,
+    });
+  }
+};
 module.exports = {
   createFrame,
   getFrames,
@@ -262,5 +333,5 @@ module.exports = {
   updateFrame,
   deleteFrame,
   getImagesByFrameId,
-  getBackgroundByFrameId
+  getBackgroundByFrameId,
 };
