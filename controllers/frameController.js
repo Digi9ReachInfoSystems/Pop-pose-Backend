@@ -253,7 +253,7 @@ const getBackgroundByFrameId = async (req, res) => {
   }
 };
 
-exports.createFrameUpdated = async (req, res) => {
+const createFrameUpdated = async (req, res) => {
   try {
     const {
       frame_size,
@@ -332,6 +332,7 @@ module.exports = {
   getFrameById,
   updateFrame,
   deleteFrame,
+  createFrameUpdated,
   getImagesByFrameId,
   getBackgroundByFrameId,
 };
