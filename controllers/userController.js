@@ -368,16 +368,16 @@ const deleteImagesCapturedByUserId = async (req, res) => {
       message: "An internal server error occurred. Please try again later.",
     });
   }
-};
-const sendFrameToEmail = async (req, res) => {
+};const sendFrameToEmail = async (req, res) => {
   try {
     const { email } = req.body;
-    const imageFile = req.file;
+    const imageFile = req.files?.image?.[0];
+    const gifFile = req.files?.gif?.[0];
 
-    if (!imageFile || !email) {
+    if (!email || !imageFile || !gifFile) {
       return res.status(400).json({
         success: false,
-        message: "Please provide both an image file and an email address",
+        message: "Please provide an email and both image and gif files.",
       });
     }
 
@@ -385,7 +385,7 @@ const sendFrameToEmail = async (req, res) => {
     if (!emailRegex.test(email)) {
       return res.status(400).json({
         success: false,
-        message: "Please provide a valid email address",
+        message: "Please provide a valid email address.",
       });
     }
 
@@ -402,22 +402,21 @@ const sendFrameToEmail = async (req, res) => {
       },
     });
 
-    // Check if the uploaded file is a GIF
-    const isGif = imageFile.mimetype === "image/gif";
-    const fileName = isGif ? "animation.gif" : imageFile.originalname;
-
     const mailOptions = {
       from: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USERNAME,
       to: email,
-      subject: isGif ? "Your GIF Animation" : "Your Image Attachment",
-      text: isGif
-        ? "Attached is your animated GIF."
-        : "Please find your attached image.",
+      subject: "Your Image & GIF Attachments",
+      text: "Attached are your image and animation.",
       attachments: [
         {
-          filename: fileName,
+          filename: imageFile.originalname,
           content: imageFile.buffer,
           contentType: imageFile.mimetype,
+        },
+        {
+          filename: gifFile.originalname || "animation.gif",
+          content: gifFile.buffer,
+          contentType: gifFile.mimetype,
         },
       ],
     };
@@ -426,7 +425,7 @@ const sendFrameToEmail = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: `Email with ${isGif ? "GIF" : "image"} sent successfully.`,
+      message: "Email with image and gif sent successfully.",
     });
   } catch (error) {
     console.error("Error sending email:", error);

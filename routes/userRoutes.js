@@ -52,7 +52,14 @@ router.post("/upload-image", upload.single("image"), async (req, res) => {
 });
 router.get("/getAllUsers", user.getAllUsers);
 router.post("/provideConsent/:userId", user.provideConsent);
-router.post("/send-to-email", upload.single("image"), user.sendFrameToEmail);
+router.post(
+  "/send-to-email",
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "gif", maxCount: 1 },
+  ]),
+  user.sendFrameToEmail
+);
 router.get("/getImagesByUserId/:userId", user.getImagesByUserId);
 router.get("/getDetailsByUserId/:userId", user.getDetailsByUserId);
 router.delete(
