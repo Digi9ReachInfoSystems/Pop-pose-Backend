@@ -369,21 +369,18 @@ const deleteImagesCapturedByUserId = async (req, res) => {
     });
   }
 };
-
 const sendFrameToEmail = async (req, res) => {
   try {
-    // Check if file and email are present in the request
-    if (!req.file || !req.body.email) {
+    const { email } = req.body;
+    const imageFile = req.file;
+
+    if (!imageFile || !email) {
       return res.status(400).json({
         success: false,
         message: "Please provide both an image file and an email address",
       });
     }
 
-    const { email } = req.body;
-    const imageFile = req.file;
-
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({
@@ -392,42 +389,44 @@ const sendFrameToEmail = async (req, res) => {
       });
     }
 
-    // Create transporter with SMTP settings
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST, // e.g., 'smtp.yourdomain.com'
-      port: process.env.SMTP_PORT || 587, // Typically 587 for TLS, 465 for SSL
-      secure: process.env.SMTP_SECURE === "true", // true for 465, false for other ports
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT || 587,
+      secure: process.env.SMTP_SECURE === "true",
       auth: {
         user: process.env.SMTP_USERNAME,
         pass: process.env.SMTP_PASSWORD,
       },
       tls: {
-        // Do not fail on invalid certs
         rejectUnauthorized: process.env.SMTP_REJECT_UNAUTHORIZED !== "false",
       },
     });
 
-    // Email options
+    // Check if the uploaded file is a GIF
+    const isGif = imageFile.mimetype === "image/gif";
+    const fileName = isGif ? "animation.gif" : imageFile.originalname;
+
     const mailOptions = {
       from: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USERNAME,
       to: email,
-      subject: "Your Image Attachment",
-      text: "Please find your attached image.",
+      subject: isGif ? "Your GIF Animation" : "Your Image Attachment",
+      text: isGif
+        ? "Attached is your animated GIF."
+        : "Please find your attached image.",
       attachments: [
         {
-          filename: imageFile.originalname,
-          content: imageFile.buffer, // Use the in-memory buffer
+          filename: fileName,
+          content: imageFile.buffer,
           contentType: imageFile.mimetype,
         },
       ],
     };
 
-    // Send email
     await transporter.sendMail(mailOptions);
 
     return res.status(200).json({
       success: true,
-      message: "Image sent to email successfully",
+      message: `Email with ${isGif ? "GIF" : "image"} sent successfully.`,
     });
   } catch (error) {
     console.error("Error sending email:", error);
@@ -439,6 +438,7 @@ const sendFrameToEmail = async (req, res) => {
     });
   }
 };
+
 const uploadToUserModel = async (userId, imageFile) => {
   try {
     if (!userId || !imageFile) {
