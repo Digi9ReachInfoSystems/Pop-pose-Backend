@@ -277,7 +277,7 @@ const saveImages2 = async (req, res) => {
         imageUrls.push(signedUrl);
       }
 
-      user.image_captured.push(...imageUrls);
+      user.all_images.push(...imageUrls);
 
       await user.save();
 
