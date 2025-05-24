@@ -15,6 +15,7 @@ router.post("/start", user.startUserJourney);
 router.post("/:userId/select-frame", user.selectFrame);
 router.post("/:userId/select-number", user.createNoOfCopies);
 router.post("/save-images", user.saveImages);
+router.post("/save-images2", user.saveImages2);
 const { bucket } = require("./../config/firebaseConfig"); // Import the initialized Firebase bucket
 router.post("/upload-image", upload.single("image"), async (req, res) => {
   try {
@@ -62,5 +63,9 @@ router.delete(
 router.get("/getTotalCount", user.totalUseras);
 router.get("/getTotalFrames", user.totalFrames);
 router.get("/getTotalCopies", user.totalNoOfCopies);
-router.post("/uplaodImageUsingUserId/:userId",upload.single("finalImage") ,user.uplaodImageUsingUserId);
+router.post(
+  "/uplaodImageUsingUserId/:userId",
+  upload.single("finalImage"),
+  user.uplaodImageUsingUserId
+);
 module.exports = router;

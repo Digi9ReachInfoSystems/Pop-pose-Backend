@@ -8,9 +8,9 @@ const nodemailer = require("nodemailer");
 const fs = require("fs");
 const { uploadFileToFirebase } = require("../utilities/firebaseutility");
 const { bucket } = require("../config/firebaseConfig"); // Import Firebase storage bucket
-const Background = require("../models/backgroundModel")
-const NumberOfCopies = require("../models/noofCopiesModel")
-const Frame = require("../models/frameModel")
+const Background = require("../models/backgroundModel");
+const NumberOfCopies = require("../models/noofCopiesModel");
+const Frame = require("../models/frameModel");
 
 const storageConfig = multer.memoryStorage();
 
@@ -33,7 +33,7 @@ const startUserJourney = async (req, res) => {
       user_Name,
       phone_Number,
       email,
-      device_key
+      device_key,
     });
 
     res.status(201).json({ user });
@@ -56,7 +56,7 @@ const startUserJourney = async (req, res) => {
 
 const registerDevice = async (req, res) => {
   try {
-  } catch { }
+  } catch {}
 };
 
 const selectFrame = async (req, res) => {
@@ -93,7 +93,9 @@ const createNoOfCopies = async (req, res) => {
     }
     user.no_of_copies = numberId;
     const no_of_copies = await NumberOfCopies.findById(numberId);
-    const background = await Background.findOne({ device_key: user.device_key });
+    const background = await Background.findOne({
+      device_key: user.device_key,
+    });
     if (background) {
       background.no_of_rolls = background.no_of_rolls - no_of_copies.Number;
       await background.save();
@@ -123,8 +125,9 @@ const provideConsent = async (req, res) => {
     await user.save();
 
     res.status(200).json({
-      message: `Consent has been ${consent ? "provided" : "revoked"
-        } successfully`,
+      message: `Consent has been ${
+        consent ? "provided" : "revoked"
+      } successfully`,
     });
   } catch (err) {
     console.error("Server error:", err);
@@ -161,6 +164,71 @@ const getUserForPayment = async (req, res) => {
 };
 
 const saveImages = async (req, res) => {
+  // Use multer to handle file uploads from the form
+  upload(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ message: err.message });
+    }
+
+    const { userId } = req.body; // Get the user ID from the request body
+
+    if (!userId || !req.files || req.files.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "User ID and images are required." });
+    }
+
+    try {
+      // Find the user by ID
+      const user = await userModel.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found." });
+      }
+
+      const imageUrls = [];
+
+      for (const image of req.files) {
+        const fileName = `images/${Date.now()}_${image.originalname}`; // Create a unique file name
+
+        const file = storage.file(fileName);
+        const stream = file.createWriteStream({
+          metadata: {
+            contentType: image.mimetype,
+          },
+        });
+
+        stream.on("error", (err) => {
+          console.error("Error uploading image: ", err);
+          return res.status(500).json({ message: "Error uploading image." });
+        });
+
+        stream.end(image.buffer);
+
+        const [signedUrl] = await file.getSignedUrl({
+          action: "read",
+          expires: Date.now() + 60 * 60 * 200000,
+        });
+
+        imageUrls.push(signedUrl);
+      }
+
+      user.image_captured.push(...imageUrls);
+
+      await user.save();
+
+      return res
+        .status(200)
+        .json({ message: "Images uploaded successfully.", imageUrls });
+    } catch (error) {
+      console.error("Error saving images: ", error);
+      return res
+        .status(500)
+        .json({ message: error.message || "Error saving images." });
+    }
+  });
+};
+
+const saveImages2 = async (req, res) => {
   // Use multer to handle file uploads from the form
   upload(req, res, async (err) => {
     if (err) {
@@ -422,7 +490,6 @@ const uploadToUserModel = async (userId, imageFile) => {
   }
 };
 
-
 ///i should be able to count the totasl number of users
 
 const totalUseras = async (req, res) => {
@@ -435,7 +502,7 @@ const totalUseras = async (req, res) => {
       message: "An internal server error occurred. Please try again later.",
     });
   }
-}
+};
 
 const totalFrames = async (req, res) => {
   try {
@@ -447,7 +514,7 @@ const totalFrames = async (req, res) => {
       message: "An internal server error occurred. Please try again later.",
     });
   }
-}
+};
 
 const totalNoOfCopies = async (req, res) => {
   try {
@@ -459,7 +526,7 @@ const totalNoOfCopies = async (req, res) => {
       message: "An internal server error occurred. Please try again later.",
     });
   }
-}
+};
 
 const uplaodImageUsingUserId = async (req, res) => {
   try {
@@ -479,7 +546,8 @@ const uplaodImageUsingUserId = async (req, res) => {
       message: "An internal server error occurred. Please try again later.",
     });
   }
-}
+};
+
 module.exports = {
   startUserJourney,
   selectFrame,
@@ -487,6 +555,7 @@ module.exports = {
   getUserForPayment,
   sendFrameToEmail,
   saveImages,
+  saveImages2,
   getAllUsers,
   provideConsent,
   getImagesByUserId,
@@ -495,5 +564,5 @@ module.exports = {
   totalUseras,
   totalFrames,
   totalNoOfCopies,
-  uplaodImageUsingUserId
+  uplaodImageUsingUserId,
 };

@@ -30,15 +30,11 @@ const userSchema = new mongoose.Schema({
     },
   },
 
-
-
   device_key: {
     type: String,
     // required: true,
     // unique: false
   },
-
-
 
   payment_Completed: {
     type: Boolean,
@@ -73,6 +69,7 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "noOfCopies",
   },
+  all_images: [{ type: String }],
 
   image_captured: [
     {
@@ -88,8 +85,8 @@ const userSchema = new mongoose.Schema({
   created_At: {
     type: Date,
   },
-  
-  finalImage : {
+
+  finalImage: {
     type: String,
   },
 });
