@@ -3,6 +3,15 @@ const mongoose = require("mongoose");
 const frameSchema = new mongoose.Schema({
   overlay: { type: Boolean, default: false },
   frame_size: { type: String, required: true },
+  overlayRegions: [
+    {
+      x: Number, // px from left
+      y: Number, // px from top
+      width: Number,
+      height: Number,
+    },
+  ],
+
   price: { type: Number, required: true },
   shapes: { type: String, default: "circle" },
   rows: { type: Number, required: true },

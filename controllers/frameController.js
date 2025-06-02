@@ -58,7 +58,8 @@ const createFrame = async (req, res) => {
       seven,
       frameImage,
       placeholders,
-      overlay = false, // ← NEW: default false if omitted
+      overlay,
+      overlayRegions, // ← NEW: default false if omitted
     } = req.body;
 
     const frame = new Frame({
@@ -88,6 +89,7 @@ const createFrame = async (req, res) => {
       seven,
       frameImage,
       placeholders,
+      overlayRegions,
       overlay, // ← store it
     });
 
@@ -300,6 +302,8 @@ const createFrameUpdated = async (req, res) => {
       seven,
       frameImage,
       placeholders,
+      overlayRegions,
+      overlay,
     } = req.body;
 
     const frame = new Frame({
@@ -329,6 +333,8 @@ const createFrameUpdated = async (req, res) => {
       seven,
       frameImage,
       placeholders,
+      overlayRegions,
+      overlay, // Store the overlay property
     });
 
     const savedFrame = await frame.save();
