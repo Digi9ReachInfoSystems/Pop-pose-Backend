@@ -11,6 +11,10 @@ const frameSchema = new mongoose.Schema({
   image: { type: String },
   orientation: { type: String, required: true }, // Horizontal or Vertical
   no_of_photos: { type: Number },
+  overlay: {
+    type: Boolean,
+    default: false,
+  },
 
   // Store all individual placeholder data
   placeholders: [

@@ -29,29 +29,26 @@ function generateFrameLayout(frame) {
   return layout;
 }
 
-// Create a new frame
 const createFrame = async (req, res) => {
   try {
     const {
       frame_size,
       price,
+      shapes,
       rows,
       columns,
       index,
       image,
       orientation,
       no_of_photos,
+      background,
       padding,
       bottomPadding,
       topPadding,
-      shapes,
       horizontal_gap,
       vertical_gap,
-      background,
-      overlay,
       is4by6,
       is2by6,
-      frameImage,
       one,
       two,
       three,
@@ -59,28 +56,29 @@ const createFrame = async (req, res) => {
       five,
       six,
       seven,
+      frameImage,
+      placeholders,
+      overlay = false, // ← NEW: default false if omitted
     } = req.body;
 
-    const newFrame = await Frame.create({
+    const frame = new Frame({
       frame_size,
       price,
+      shapes,
       rows,
       columns,
       index,
-      orientation,
       image,
-      shapes,
+      orientation,
       no_of_photos,
+      background,
       padding,
       bottomPadding,
       topPadding,
       horizontal_gap,
       vertical_gap,
-      background,
-      overlay,
       is4by6,
       is2by6,
-      frameImage,
       one,
       two,
       three,
@@ -88,17 +86,24 @@ const createFrame = async (req, res) => {
       five,
       six,
       seven,
+      frameImage,
+      placeholders,
+      overlay, // ← store it
     });
 
-    res.status(201).json({ frame: newFrame });
-  } catch (err) {
-    console.error("Error creating frame:", err);
-    res.status(500).json({
-      message: "An internal server error occurred. Please try again later.",
+    const savedFrame = await frame.save();
+    return res.status(201).json({
+      message: "Frame created successfully",
+      data: savedFrame,
+    });
+  } catch (error) {
+    console.error("Error creating frame:", error);
+    return res.status(500).json({
+      message: "Failed to create frame",
+      error: error.message,
     });
   }
 };
-
 const getFrames = async (req, res) => {
   try {
     const frames = await Frame.find()
