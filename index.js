@@ -6,23 +6,26 @@ const connectDB = require("./config/mongoConfig");
 
 dotenv.config();
 const app = express();
+
 const port = process.env.PORT || 3000;
 connectDB();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use("/api/copies", require("./routes/copyRoutes"));
 app.use("/api/user", require("./routes/userRoutes"));
 app.use("/api/frame", require("./routes/frameRoute"));
 app.use("/api/time", require("./routes/timeRoutes"));
 app.use("/api/background", require("./routes/backgroundRoutes"));
-app.use("/api/consent", require("./routes/consentRoutes"))
-app.use("/api/backdrop", require("./routes/backdropRoutes"))
-app.use("/api/admin", require("./routes/adminRoutes"))
-app.use("/api/payment", require("./routes/paymentRoutes"))
-app.use("/api/coupon", require("./routes/couponRoutes"))
-app.use("/api/frameImage", require("./routes/frameImageRoutes"))
-app.use("/api/pageTimer", require("./routes/pageTimerRoutes"))
-app.use("/api/rating", require("./routes/ratingRoutes"))
+app.use("/api/consent", require("./routes/consentRoutes"));
+app.use("/api/backdrop", require("./routes/backdropRoutes"));
+app.use("/api/admin", require("./routes/adminRoutes"));
+app.use("/api/payment", require("./routes/paymentRoutes"));
+app.use("/api/coupon", require("./routes/couponRoutes"));
+app.use("/api/frameImage", require("./routes/frameImageRoutes"));
+app.use("/api/pageTimer", require("./routes/pageTimerRoutes"));
+app.use("/api/rating", require("./routes/ratingRoutes"));
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

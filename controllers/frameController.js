@@ -1,5 +1,6 @@
 const frameModel = require("../models/frameModel");
 const Frame = require("../models/frameModel");
+const { createCanvas, loadImage } = require("canvas");
 
 // Function to generate frame layout (as defined earlier)
 function generateFrameLayout(frame) {
@@ -304,8 +305,10 @@ const createFrameUpdated = async (req, res) => {
       placeholders,
       overlayRegions,
       overlay,
+      overlayImage,
     } = req.body;
 
+    // Create frame document
     const frame = new Frame({
       frame_size,
       price,
@@ -334,10 +337,25 @@ const createFrameUpdated = async (req, res) => {
       frameImage,
       placeholders,
       overlayRegions,
-      overlay, // Store the overlay property
+      overlay,
+      overlayImage,
     });
 
     const savedFrame = await frame.save();
+
+    // Generate composite frame if overlay is enabled
+    if (overlay && overlayImage) {
+      try {
+        const compositeImageUrl = await generateCompositeFrame(savedFrame);
+        // Update frame with composite image URL
+        savedFrame.compositeImage = compositeImageUrl;
+        await savedFrame.save();
+      } catch (compositeError) {
+        console.error("Error generating composite frame:", compositeError);
+        // Continue even if composite generation fails
+      }
+    }
+
     return res.status(201).json({
       message: "Frame created successfully",
       data: savedFrame,
@@ -350,6 +368,77 @@ const createFrameUpdated = async (req, res) => {
     });
   }
 };
+
+// Helper function to generate composite frame
+async function generateCompositeFrame(frameData) {
+  // Define canvas size based on frame size or use default
+  const width = 800; // Adjust based on your requirements
+  const height = 600; // Adjust based on your requirements
+
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext("2d");
+
+  // 1. Draw background/empty frame
+  if (frameData.background && frameData.background.length > 0) {
+    const bgColor = frameData.background[0]; // Using first background
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, width, height);
+  }
+
+  // 2. Draw frame image if available
+  if (frameData.frameImage) {
+    try {
+      const frameImg = await loadImage(frameData.frameImage);
+      ctx.drawImage(frameImg, 0, 0, width, height);
+    } catch (err) {
+      console.error("Error loading frame image:", err);
+    }
+  }
+
+  // 3. Draw placeholders (optional - might be hidden under overlay)
+  if (frameData.placeholders && frameData.placeholders.length > 0) {
+    ctx.fillStyle = "rgba(200, 200, 200, 0.5)"; // Semi-transparent gray for placeholders
+    frameData.placeholders.forEach((ph) => {
+      ctx.beginPath();
+      if (frameData.shapes === "circle") {
+        ctx.arc(ph.x, ph.y, ph.width / 2, 0, Math.PI * 2);
+      } else {
+        ctx.rect(ph.x, ph.y, ph.width, ph.height);
+      }
+      ctx.fill();
+    });
+  }
+
+  // 4. Draw overlay image if available
+  if (frameData.overlay && frameData.overlayImage) {
+    try {
+      const overlayImg = await loadImage(frameData.overlayImage);
+      ctx.drawImage(overlayImg, 0, 0, width, height);
+    } catch (err) {
+      console.error("Error loading overlay image:", err);
+    }
+  }
+
+  // Save the composite image
+  const uploadsDir = path.join(__dirname, "../../uploads/frames");
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+
+  const filename = `composite-${frameData._id}-${Date.now()}.png`;
+  const filepath = path.join(uploadsDir, filename);
+  const imageUrl = `/uploads/frames/${filename}`;
+
+  const out = fs.createWriteStream(filepath);
+  const stream = canvas.createPNGStream();
+  stream.pipe(out);
+
+  return new Promise((resolve, reject) => {
+    out.on("finish", () => resolve(imageUrl));
+    out.on("error", reject);
+  });
+}
+
 module.exports = {
   createFrame,
   getFrames,
